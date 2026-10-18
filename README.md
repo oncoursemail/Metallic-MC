@@ -107,3 +107,14 @@ Upstream versions, licenses, and security advice evolve. Pin artifacts by versio
 ### Pressure telemetry safety
 
 Linux CPU and memory PSI files may be absent in constrained development sandboxes. The node agent continues to report basic host telemetry, but explicitly publishes `pressureAvailable: false`; the advisory placement manager rejects that host until reliable PSI is available. Missing PSI is **never** treated as zero pressure. Live admission will require stronger per-container cgroup accounting and reconciled resource reservations.
+
+
+## Control Surface v0.2 design branch (research prototype)
+
+- **New visual system:** editorial industrial interface with off-white canvas, midnight navigation rail, purpose-built typography, restrained copper details, keyboard-focused native controls and responsive workspace.
+- **Old Servers:** a distinctly labeled read-only legacy discovery page. Linux agents observe only whether a process named `wings` was observed through procfs; no Pterodactyl API credentials, hosted worlds, user accounts, or old containers are accessed or modified. A missing observation is **unknown**, not proof of no servers.
+- **I/O pressure:** Linux agents now observe I/O PSI, and the placement preview rejects high reported storage stalls; background AI learning is deferred if I/O PSI is unavailable. Policy decisions remain suggestions until cgroup reservations and safe reconciliation are implemented.
+- **Research:** [Innovation Lab](docs/INNOVATION-LAB.md) and [Control Surface art direction](docs/design/CONTROL-SURFACE.md). The proposal describes measurable experiments, not shipped scale/performance claims.
+- **Interactive sample:** `python3 tools/build_design_preview.py /tmp/metallic-preview.html` creates a stand-alone browser preview. It contains **clearly marked synthetic data**, not a production dashboard or actual telemetry from personal hardware.
+
+**Validation:** Go unit tests, race detector, vet and builds were completed locally. Chromium browser execution was restricted in the authoring environment, so pixel/interaction and WCAG audits still require a normal browser before approving the UI. No services on `starai` or `alexbuz1` were changed or restarted as part of this branch.

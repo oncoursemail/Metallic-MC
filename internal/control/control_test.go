@@ -276,3 +276,16 @@ func TestAgentLegacyMetricsCannotTriggerPlacement(t *testing.T) {
 		t.Fatalf("fail-open legacy placement: %+v", preview)
 	}
 }
+
+func TestRejectInvalidIOPressure(t *testing.T) {
+	h := Heartbeat{NodeID: "host", Hostname: "host", CPUPercent: 20, MemoryTotal: 100, DiskTotal: 100, IOPressureAvailable: true, IOPressureSome10: 101}
+	if validHeartbeat(h) {
+		t.Fatal("invalid IO pressure accepted")
+	}
+	h.IOPressureSome10 = 1
+	h.LegacyWingsChecked = true
+	h.LegacyWingsObserved = true
+	if !validHeartbeat(h) {
+		t.Fatal("valid legacy observation rejected")
+	}
+}

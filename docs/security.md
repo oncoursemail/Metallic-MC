@@ -28,6 +28,9 @@ TCPShield documents support for certain home-hosted servers but explicitly does 
 - No process creation, arbitrary shell commands, remote file writes, instance startup/shutdown, Docker socket mounting or privileged actions are exposed by the foundation API.
 - Secrets are not checked into Git. `.env.example` contains placeholders only. Do not turn example strings into real secrets.
 
+- The optional Star AI context endpoint requires a **different** explicitly provisioned read-only bearer token, returns a redacted live status view, and is disabled by default. It contains no start/stop API, credentials, private node addresses or player data.
+- Resource Manager computes advisory placement previews from actual reported telemetry; it does not reserve capacity, stop Star AI, or enforce operating-system limits.
+
 ### Known limitations — **do not expose publicly yet**
 
 - In-memory sessions, telemetry and login throttling disappear after restart. The login limiter is per source address; a distributed source can evade it. A future identity provider should provide MFA, centralized session invalidation, audit logs and role/permission policies.

@@ -17,6 +17,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/oncoursemail/metallic-mc/internal/resources"
 )
 
 // The control plane is an intentionally minimal, single-process prototype.
@@ -31,6 +33,7 @@ type Config struct {
 	AdminUser     string
 	AdminPassword string
 	AgentToken    string
+	AIReadToken   string
 	SecureCookies bool
 }
 type Instance struct {
@@ -40,16 +43,21 @@ type Instance struct {
 	Healthy bool   `json:"healthy"`
 }
 type Heartbeat struct {
-	NodeID        string     `json:"nodeId"`
-	Hostname      string     `json:"hostname"`
-	CPUPercent    float64    `json:"cpuPercent"`
-	MemoryUsed    uint64     `json:"memoryUsed"`
-	MemoryTotal   uint64     `json:"memoryTotal"`
-	DiskUsed      uint64     `json:"diskUsed"`
-	DiskTotal     uint64     `json:"diskTotal"`
-	Load1         float64    `json:"load1"`
-	UptimeSeconds uint64     `json:"uptimeSeconds"`
-	Instances     []Instance `json:"instances"`
+	NodeID            string     `json:"nodeId"`
+	Hostname          string     `json:"hostname"`
+	CPUPercent        float64    `json:"cpuPercent"`
+	CPUThreads        uint32     `json:"cpuThreads"`
+	CPUPressureSome10 float64    `json:"cpuPressureSome10"`
+	MemPressureSome10 float64    `json:"memPressureSome10"`
+	SwapTotal         uint64     `json:"swapTotal"`
+	SwapUsed          uint64     `json:"swapUsed"`
+	MemoryUsed        uint64     `json:"memoryUsed"`
+	MemoryTotal       uint64     `json:"memoryTotal"`
+	DiskUsed          uint64     `json:"diskUsed"`
+	DiskTotal         uint64     `json:"diskTotal"`
+	Load1             float64    `json:"load1"`
+	UptimeSeconds     uint64     `json:"uptimeSeconds"`
+	Instances         []Instance `json:"instances"`
 }
 type Sample struct {
 	At         time.Time `json:"at"`
@@ -97,6 +105,8 @@ func (c *Controller) Handler() http.Handler {
 	mux.HandleFunc("POST /logout", c.requireAdmin(c.logout))
 	mux.HandleFunc("GET /", c.requireAdmin(c.index))
 	mux.HandleFunc("GET /api/v1/overview", c.requireAdmin(c.overview))
+	mux.HandleFunc("GET /api/v1/resources", c.requireAdmin(c.resourcePreview))
+	mux.HandleFunc("GET /api/v1/ai/context", c.aiContext)
 	mux.HandleFunc("POST /api/v1/heartbeat", c.heartbeat)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -245,7 +255,7 @@ func validHeartbeat(h Heartbeat) bool {
 	if !validID.MatchString(h.NodeID) || len(h.Hostname) == 0 || len(h.Hostname) > 128 {
 		return false
 	}
-	if !okPercent(h.CPUPercent) || !okMetric(h.Load1) || h.MemoryUsed > h.MemoryTotal || h.DiskUsed > h.DiskTotal || len(h.Instances) > 64 {
+	if !okPercent(h.CPUPercent) || !okMetric(h.Load1) || !okPercent(h.CPUPressureSome10) || !okPercent(h.MemPressureSome10) || h.CPUThreads > 512 || h.MemoryUsed > h.MemoryTotal || h.DiskUsed > h.DiskTotal || h.SwapUsed > h.SwapTotal || len(h.Instances) > 64 {
 		return false
 	}
 	for _, i := range h.Instances {
@@ -276,4 +286,88 @@ func (c *Controller) overview(w http.ResponseWriter, r *http.Request) {
 		Nodes      []Node    `json:"nodes"`
 		Stage      string    `json:"stage"`
 	}{Product: "Metallic Control", ServerTime: now, Nodes: nodes, Stage: "foundation"})
+}
+
+// snapshotHosts converts authenticated live agent reports to advisory capacity
+// estimates. Agents report raw metrics; no agent can request a privileged action.
+func (c *Controller) snapshotHosts() []resources.Host {
+	now := c.now()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	hosts := make([]resources.Host, 0, len(c.nodes))
+	for id, entry := range c.nodes {
+		if now.Sub(entry.seen) > 24*time.Hour {
+			continue
+		}
+		h := entry.heartbeat
+		hosts = append(hosts, resources.Host{
+			ID: id, Online: now.Sub(entry.seen) >= 0 && now.Sub(entry.seen) < 35*time.Second,
+			CPUThreads: h.CPUThreads, CPUPercent: h.CPUPercent, Load1: h.Load1,
+			CPUPressureSome10: h.CPUPressureSome10, MemPressureSome10: h.MemPressureSome10,
+			MemoryTotal: h.MemoryTotal, MemoryUsed: h.MemoryUsed,
+			DiskTotal: h.DiskTotal, DiskUsed: h.DiskUsed,
+			SwapTotal: h.SwapTotal, SwapUsed: h.SwapUsed,
+		})
+	}
+	return hosts
+}
+func (c *Controller) resourcePreview(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("profile")
+	if id == "" {
+		id = "mc-lobby"
+	}
+	profile, ok := resources.FindProfile(id)
+	if !ok {
+		http.Error(w, "unknown approved profile", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(struct {
+		Profiles []resources.Profile `json:"profiles"`
+		Preview  resources.Preview   `json:"preview"`
+	}{resources.Profiles(), resources.Compute(c.snapshotHosts(), profile)})
+}
+
+// Star AI receives a separately-scoped, read-only, deliberately redacted view.
+// It cannot start servers, execute commands, read player data, or obtain agent
+// tokens. No AI integration exists unless AIReadToken is explicitly configured.
+func (c *Controller) aiContext(w http.ResponseWriter, r *http.Request) {
+	if len(c.cfg.AIReadToken) < 24 {
+		http.NotFound(w, r)
+		return
+	}
+	header := r.Header.Get("Authorization")
+	if !strings.HasPrefix(header, "Bearer ") || !secureEqual(strings.TrimPrefix(header, "Bearer "), c.cfg.AIReadToken) {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	type aiNode struct {
+		NodeID               string  `json:"nodeId"`
+		Online               bool    `json:"online"`
+		CPUPercent           float64 `json:"cpuPercent"`
+		CPUThreads           uint32  `json:"cpuThreads"`
+		AvailableMemoryBytes uint64  `json:"availableMemoryBytes"`
+		CPUPressureSome10    float64 `json:"cpuPressureSome10"`
+	}
+	hosts := c.snapshotHosts()
+	nodes := make([]aiNode, 0, len(hosts))
+	for _, n := range hosts {
+		var avail uint64
+		if n.MemoryTotal >= n.MemoryUsed {
+			avail = n.MemoryTotal - n.MemoryUsed
+		}
+		nodes = append(nodes, aiNode{NodeID: n.ID, Online: n.Online, CPUPercent: n.CPUPercent, CPUThreads: n.CPUThreads, AvailableMemoryBytes: avail, CPUPressureSome10: n.CPUPressureSome10})
+	}
+	profile, _ := resources.FindProfile("mc-lobby")
+	preview := resources.Compute(hosts, profile)
+	// RecommendedNode is a what-if suggestion, not authorization to provision.
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(struct {
+		Stage                 string            `json:"stage"`
+		ServerTime            time.Time         `json:"serverTime"`
+		ReadOnly              bool              `json:"readOnly"`
+		DeploymentImplemented bool              `json:"deploymentImplemented"`
+		Nodes                 []aiNode          `json:"nodes"`
+		ExampleAdmission      resources.Preview `json:"exampleAdmission"`
+	}{Stage: "prototype", ServerTime: c.now(), ReadOnly: true, DeploymentImplemented: false, Nodes: nodes, ExampleAdmission: preview})
 }

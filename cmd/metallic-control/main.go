@@ -17,10 +17,14 @@ func main() {
 		AdminUser:     getenv("METALLIC_ADMIN_USER", "admin"),
 		AdminPassword: os.Getenv("METALLIC_ADMIN_PASSWORD"),
 		AgentToken:    os.Getenv("METALLIC_AGENT_TOKEN"),
+		AIReadToken:   os.Getenv("METALLIC_STARAI_READ_TOKEN"),
 		SecureCookies: os.Getenv("METALLIC_COOKIE_SECURE") == "true",
 	}
 	if len(cfg.AdminPassword) < 12 || len(cfg.AgentToken) < 24 {
 		log.Fatal("METALLIC_ADMIN_PASSWORD (min 12 chars) and METALLIC_AGENT_TOKEN (min 24 chars) must be set")
+	}
+	if cfg.AIReadToken != "" && (len(cfg.AIReadToken) < 24 || cfg.AIReadToken == cfg.AgentToken) {
+		log.Fatal("METALLIC_STARAI_READ_TOKEN must be >=24 chars and distinct from the agent token")
 	}
 	address := getenv("METALLIC_LISTEN_ADDR", "127.0.0.1:8080")
 	host, _, err := net.SplitHostPort(address)

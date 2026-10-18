@@ -8,6 +8,13 @@ Read-only admin dashboard, authenticated Linux agent, CPU/RAM/disk/load, static 
 
 **Done means:** local controller starts, agent heartbeat is authenticated, the dashboard displays real node telemetry, unauthorized API calls fail, and Go unit/race checks pass.
 
+## M0.5 — Shared resources + Star AI status [PREVIEW IMPLEMENTED]
+
+- Read-only Resource Manager estimates admission of small built-in workload templates against live CPU, RAM, monitored-disk, swap and Linux PSI metrics. No server is started or capacity allocated.
+- Read-only separate bearer-token API for Star AI to explain infrastructure status. Disabled by default; explicitly does NOT grant privileged commands.
+- The existing Wings service and heavy Star AI model processes on the connected machines were observed only; no host changes were made.
+- Source: [shared-platform.md](shared-platform.md), [hardware-snapshot.md](hardware-snapshot.md), [star-ai-integration.md](star-ai-integration.md).
+
 ## M1 — Playable private Java + Bedrock network [NOT STARTED]
 
 - Operate Velocity gateway on a private/internal interface behind an approved protective edge.

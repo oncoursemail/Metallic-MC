@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
@@ -83,10 +84,10 @@ func cpuPercent(ctx context.Context) (float64, error) {
 	}
 	return busy, nil
 }
-func memory() (used, total uint64, err error) {
+func readMeminfo() (map[string]uint64, error) {
 	f, err := os.Open("/proc/meminfo")
 	if err != nil {
-		return 0, 0, err
+		return nil, err
 	}
 	defer f.Close()
 	values := map[string]uint64{}
@@ -94,7 +95,7 @@ func memory() (used, total uint64, err error) {
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
 		if len(fields) >= 2 {
-			if fields[0] == "MemTotal:" || fields[0] == "MemAvailable:" {
+			if fields[0] == "MemTotal:" || fields[0] == "MemAvailable:" || fields[0] == "SwapTotal:" || fields[0] == "SwapFree:" {
 				v, e := strconv.ParseUint(fields[1], 10, 64)
 				if e == nil {
 					values[fields[0]] = v * 1024
@@ -103,6 +104,13 @@ func memory() (used, total uint64, err error) {
 		}
 	}
 	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+func memory() (used, total uint64, err error) {
+	values, err := readMeminfo()
+	if err != nil {
 		return 0, 0, err
 	}
 	total = values["MemTotal:"]
@@ -150,6 +158,31 @@ func loadAndUptime() (float64, uint64, error) {
 		return 0, 0, err
 	}
 	return load, uint64(up), nil
+}
+
+// pressureSome10 reports Linux PSI's avg10 "some" stall percentage.
+// Missing PSI data is an error rather than silently claiming zero pressure.
+func pressureSome10(path string) (float64, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return 0, err
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) < 2 || fields[0] != "some" {
+			continue
+		}
+		for _, part := range fields[1:] {
+			if strings.HasPrefix(part, "avg10=") {
+				x, err := strconv.ParseFloat(strings.TrimPrefix(part, "avg10="), 64)
+				if err != nil || x < 0 || x > 100 {
+					return 0, errors.New("invalid PSI sample")
+				}
+				return x, nil
+			}
+		}
+	}
+	return 0, errors.New("no PSI some avg10 reading")
 }
 
 // ParseServices expects name@host:port entries. Entries are never executed as commands.
@@ -213,5 +246,25 @@ func Sample(ctx context.Context, nodeID, hostname, diskPath string, services []c
 	if err != nil {
 		return control.Heartbeat{}, err
 	}
-	return control.Heartbeat{NodeID: nodeID, Hostname: hostname, CPUPercent: cpu, MemoryUsed: memUsed, MemoryTotal: memTotal, DiskUsed: diskUsed, DiskTotal: diskTotal, Load1: load, UptimeSeconds: uptime, Instances: ProbeServices(ctx, services)}, nil
+	values, err := readMeminfo()
+	if err != nil {
+		return control.Heartbeat{}, fmt.Errorf("swap sample: %w", err)
+	}
+	swapTotal, swapFree := values["SwapTotal:"], values["SwapFree:"]
+	if swapFree > swapTotal {
+		return control.Heartbeat{}, errors.New("invalid swap statistics")
+	}
+	cpuPSI, err := pressureSome10("/proc/pressure/cpu")
+	if err != nil {
+		return control.Heartbeat{}, fmt.Errorf("CPU pressure sample: %w", err)
+	}
+	memoryPSI, err := pressureSome10("/proc/pressure/memory")
+	if err != nil {
+		return control.Heartbeat{}, fmt.Errorf("memory pressure sample: %w", err)
+	}
+	return control.Heartbeat{NodeID: nodeID, Hostname: hostname, CPUPercent: cpu,
+		CPUThreads: uint32(runtime.NumCPU()), CPUPressureSome10: cpuPSI, MemPressureSome10: memoryPSI,
+		MemoryUsed: memUsed, MemoryTotal: memTotal, SwapTotal: swapTotal, SwapUsed: swapTotal - swapFree,
+		DiskUsed: diskUsed, DiskTotal: diskTotal, Load1: load, UptimeSeconds: uptime,
+		Instances: ProbeServices(ctx, services)}, nil
 }

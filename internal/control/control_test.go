@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/oncoursemail/metallic-mc/internal/resources"
 )
 
 func testHandler() http.Handler {
@@ -148,5 +150,129 @@ func TestLogoutRevokesSession(t *testing.T) {
 	h.ServeHTTP(w, req)
 	if w.Code != 401 {
 		t.Fatalf("old session was still valid: HTTP %d", w.Code)
+	}
+}
+
+func TestResourceAdmissionAndStarAIReadOnlyAccess(t *testing.T) {
+	cfg := Config{AdminUser: "admin", AdminPassword: "averysecurepassword", AgentToken: "this-is-a-long-secret-token-for-test", AIReadToken: "star-read-only-token-separate-test"}
+	h := New(cfg)
+	hb := Heartbeat{NodeID: "node-safe", Hostname: "secret-hostname", CPUPercent: 12, CPUThreads: 16, CPUPressureSome10: 0.5, MemPressureSome10: 0, Load1: 2, MemoryTotal: 64 * (1 << 30), MemoryUsed: 20 * (1 << 30), DiskTotal: 256 * (1 << 30), DiskUsed: 60 * (1 << 30)}
+	body, _ := json.Marshal(hb)
+	req := httptest.NewRequest("POST", "/api/v1/heartbeat", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer "+cfg.AgentToken)
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	if w.Code != 204 {
+		t.Fatalf("heartbeat HTTP %d: %s", w.Code, w.Body.String())
+	}
+	// Read-only planner is admin-gated, even though it cannot make changes.
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest("GET", "/api/v1/resources?profile=mc-lobby", nil))
+	if w.Code != 401 {
+		t.Fatalf("planner unauthenticated HTTP %d", w.Code)
+	}
+	form := url.Values{"username": {"admin"}, "password": {"averysecurepassword"}}
+	req = httptest.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	if w.Code != 303 {
+		t.Fatalf("login HTTP %d", w.Code)
+	}
+	cookie := w.Result().Cookies()[0]
+	req = httptest.NewRequest("GET", "/api/v1/resources?profile=mc-lobby", nil)
+	req.AddCookie(cookie)
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	if w.Code != 200 {
+		t.Fatalf("planner HTTP %d: %s", w.Code, w.Body.String())
+	}
+	var preview struct {
+		Preview struct {
+			RecommendedNode string `json:"recommendedNode"`
+			Stage           string `json:"stage"`
+		} `json:"preview"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &preview); err != nil {
+		t.Fatal(err)
+	}
+	if preview.Preview.RecommendedNode != "node-safe" || preview.Preview.Stage != "read-only-preview" {
+		t.Fatalf("unexpected admission: %+v", preview)
+	}
+	req = httptest.NewRequest("GET", "/api/v1/resources?profile=run-arbitrary-command", nil)
+	req.AddCookie(cookie)
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	if w.Code != 400 {
+		t.Fatalf("arbitrary workload accepted: HTTP %d", w.Code)
+	}
+	// AI endpoint requires its own scope: admin cookies and agent credentials
+	// are intentionally insufficient.
+	for _, token := range []string{"", "wrong-secret", cfg.AgentToken} {
+		req = httptest.NewRequest("GET", "/api/v1/ai/context", nil)
+		if token != "" {
+			req.Header.Set("Authorization", "Bearer "+token)
+		}
+		w = httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+		if w.Code != 401 {
+			t.Fatalf("unauthorized AI token %q: HTTP %d", token, w.Code)
+		}
+	}
+	req = httptest.NewRequest("GET", "/api/v1/ai/context", nil)
+	req.Header.Set("Authorization", "Bearer "+cfg.AIReadToken)
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	if w.Code != 200 {
+		t.Fatalf("AI read HTTP %d: %s", w.Code, w.Body.String())
+	}
+	var info struct {
+		ReadOnly              bool `json:"readOnly"`
+		DeploymentImplemented bool `json:"deploymentImplemented"`
+		Nodes                 []struct {
+			NodeID string `json:"nodeId"`
+		} `json:"nodes"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &info); err != nil {
+		t.Fatal(err)
+	}
+	if !info.ReadOnly || info.DeploymentImplemented || len(info.Nodes) != 1 || info.Nodes[0].NodeID != "node-safe" {
+		t.Fatalf("incorrect AI scope: %+v", info)
+	}
+	for _, forbidden := range []string{cfg.AgentToken, cfg.AIReadToken, "secret-hostname", "25565", "127.0.0.1"} {
+		if strings.Contains(w.Body.String(), forbidden) {
+			t.Fatalf("AI response exposed private value %q", forbidden)
+		}
+	}
+}
+
+func TestDisabledAIIntegrationReturnsNotFound(t *testing.T) {
+	h := testHandler()
+	r := httptest.NewRequest("GET", "/api/v1/ai/context", nil)
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != 404 {
+		t.Fatalf("expected disabled AI endpoint to be absent, HTTP %d", w.Code)
+	}
+}
+
+func TestAgentLegacyMetricsCannotTriggerPlacement(t *testing.T) {
+	cfg := Config{AdminUser: "admin", AdminPassword: "averysecurepassword", AgentToken: "this-is-a-long-secret-token-for-test"}
+	ctrl := NewController(cfg)
+	// Older agents may legitimately report without a core count. They must
+	// remain visible in diagnostics but never be eligible for new placement.
+	hb := Heartbeat{NodeID: "legacy", Hostname: "legacy", CPUPercent: 10, MemoryTotal: 64 * (1 << 30), MemoryUsed: 10 * (1 << 30), DiskTotal: 256 * (1 << 30), DiskUsed: 50 * (1 << 30)}
+	b, _ := json.Marshal(hb)
+	r := httptest.NewRequest("POST", "/api/v1/heartbeat", bytes.NewReader(b))
+	r.Header.Set("Authorization", "Bearer "+cfg.AgentToken)
+	w := httptest.NewRecorder()
+	ctrl.Handler().ServeHTTP(w, r)
+	if w.Code != 204 {
+		t.Fatalf("legacy sample rejected unexpectedly: HTTP %d", w.Code)
+	}
+	p, _ := resources.FindProfile("mc-lobby")
+	preview := resources.Compute(ctrl.snapshotHosts(), p)
+	if preview.RecommendedNode != "" || preview.Candidates[0].Admitted {
+		t.Fatalf("fail-open legacy placement: %+v", preview)
 	}
 }

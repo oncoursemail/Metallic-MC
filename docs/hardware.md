@@ -1,6 +1,6 @@
 # Local server fleet discovery
 
-Before sizing for thousands of players, inventory your own physical equipment. **No hardware specifications have yet been provided, and no remote machine has been configured.**
+Before sizing for thousands of players, inventory your own physical equipment. **A read-only initial inventory of two remote machines was collected on 2026-10-18; no machine has been configured.** See [hardware snapshot](hardware-snapshot.md). The checklist below remains necessary for final capacity sizing.
 
 Complete one row per node. Do not commit public IP addresses, secrets, serial numbers or administration credentials to this repository.
 

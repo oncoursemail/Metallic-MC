@@ -48,6 +48,7 @@ type Heartbeat struct {
 	CPUPercent        float64    `json:"cpuPercent"`
 	CPUThreads        uint32     `json:"cpuThreads"`
 	CPUPressureSome10 float64    `json:"cpuPressureSome10"`
+	PressureAvailable bool       `json:"pressureAvailable"`
 	MemPressureSome10 float64    `json:"memPressureSome10"`
 	SwapTotal         uint64     `json:"swapTotal"`
 	SwapUsed          uint64     `json:"swapUsed"`
@@ -303,7 +304,7 @@ func (c *Controller) snapshotHosts() []resources.Host {
 		hosts = append(hosts, resources.Host{
 			ID: id, Online: now.Sub(entry.seen) >= 0 && now.Sub(entry.seen) < 35*time.Second,
 			CPUThreads: h.CPUThreads, CPUPercent: h.CPUPercent, Load1: h.Load1,
-			CPUPressureSome10: h.CPUPressureSome10, MemPressureSome10: h.MemPressureSome10,
+			CPUPressureSome10: h.CPUPressureSome10, MemPressureSome10: h.MemPressureSome10, PressureAvailable: h.PressureAvailable,
 			MemoryTotal: h.MemoryTotal, MemoryUsed: h.MemoryUsed,
 			DiskTotal: h.DiskTotal, DiskUsed: h.DiskUsed,
 			SwapTotal: h.SwapTotal, SwapUsed: h.SwapUsed,

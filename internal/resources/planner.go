@@ -51,6 +51,7 @@ type Host struct {
 	Load1             float64 `json:"load1"`
 	CPUPressureSome10 float64 `json:"cpuPressureSome10"`
 	MemPressureSome10 float64 `json:"memPressureSome10"`
+	PressureAvailable bool    `json:"pressureAvailable"`
 	MemoryTotal       uint64  `json:"memoryTotal"`
 	MemoryUsed        uint64  `json:"memoryUsed"`
 	DiskTotal         uint64  `json:"diskTotal"`
@@ -101,6 +102,9 @@ func assess(n Host, p Profile) Candidate {
 	r := Candidate{NodeID: n.ID, Reasons: []string{}}
 	if !n.Online {
 		r.Reasons = append(r.Reasons, "Node is offline or telemetry is stale")
+	}
+	if !n.PressureAvailable {
+		r.Reasons = append(r.Reasons, "CPU/memory pressure metrics unavailable")
 	}
 	if n.CPUThreads == 0 || n.CPUThreads > 512 || !validPercent(n.CPUPercent) || !validPercent(n.CPUPressureSome10) || !validPercent(n.MemPressureSome10) || math.IsNaN(n.Load1) || math.IsInf(n.Load1, 0) || n.Load1 < 0 {
 		r.Reasons = append(r.Reasons, "Insufficient or invalid CPU telemetry")

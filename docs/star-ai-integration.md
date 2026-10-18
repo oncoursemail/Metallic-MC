@@ -6,6 +6,12 @@
 
 The `oncoursemail/Star-AI` README documents a self-hosted `llama.cpp` model router, optional night-school practice and owner-reviewed lessons. The current night-school feedback process produces candidate *text lessons*, not automatic changes to the model's weights. Therefore it is incorrect to count on continued practice making model inference stop consuming RAM or CPU. Optimize routing/caching/quantization and defer background jobs instead.
 
+## Model-serving efficiency opportunities (research, not deployed)
+
+Current upstream `llama.cpp` server documentation describes `--models-max` for capping resident router models, `--sleep-idle-seconds` for releasing inactive model/KV memory at the cost of a cold-reload delay, `--cache-ram` for prompt cache memory control, continuous batching and an opt-in Prometheus-style `--metrics` endpoint. These are version-dependent flags; detect the exact installed `llama-server` build before setting them. See https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md.
+
+**Use class-aware policies instead of indiscriminately turning off AI:** keep latency-sensitive in-game inference warm inside a fixed budget when matches are active; idle-sleep or evict *unused* background models only after monitoring first-token and reload latency. Each model's memory cache can multiply aggregate RAM use; set per-model caps, avoid oversubscribing swap, and measure memory+PSI before and after. Do not alter Star AI's running model processes as part of this document-only prototype.
+
 ## Read-only observation contract: implemented
 
 Opt in with an independently generated secret in **Metallic Control's runtime environment**:

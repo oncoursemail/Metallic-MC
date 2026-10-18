@@ -103,3 +103,7 @@ infra/                   Future edge, proxy, node and telemetry deployment manif
 - [Minecraft Usage Guidelines](https://www.minecraft.net/en-us/usage-guidelines)
 
 Upstream versions, licenses, and security advice evolve. Pin artifacts by version and checksum when preparing a real deployment; audit plugin licenses before copying upstream source or distributing a fork.
+
+### Pressure telemetry safety
+
+Linux CPU and memory PSI files may be absent in constrained development sandboxes. The node agent continues to report basic host telemetry, but explicitly publishes `pressureAvailable: false`; the advisory placement manager rejects that host until reliable PSI is available. Missing PSI is **never** treated as zero pressure. Live admission will require stronger per-container cgroup accounting and reconciled resource reservations.

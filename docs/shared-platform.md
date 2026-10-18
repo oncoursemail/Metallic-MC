@@ -46,7 +46,7 @@ flowchart TB
 - Each connected node reports CPU threads, CPU utilization, 1-minute load, Linux PSI CPU/memory avg10, RAM, swap, and monitored-disk headroom. Stale/unreported nodes are blocked from preview admission. Historic swap occupancy alone is not proof of active thrashing; PSI is measured separately.
 - The planner caps estimated CPU use at 75% for standard/live profiles (40% for batch), sets a 1-logical-core CPU host reserve, and leaves at least 3 GiB or 10% of RAM plus 16 GiB or 10% of the monitored filesystem unused. It rejects high pressure and load. These are **initial conservative heuristics**, not performance benchmarks or a scheduler with quota enforcement.
 - Node memory estimates use Linux `MemAvailable` semantics; disk is only the agent-configured mount. CPU busy fraction is an instant observation. None is a guarantee of future capacity, core locality, or NVMe IOPS.
-- Older agents without core-count telemetry cannot be admitted. Authorized admin UI says why a candidate is blocked.
+- Older agents without core-count telemetry cannot be admitted. Linux sandbox/test hosts without accessible `/proc/pressure/cpu` and `/proc/pressure/memory` still provide basic metrics but report `pressureAvailable: false`; placement **fails closed** instead of inventing zero pressure. Authorized admin UI says why a candidate is blocked.
 
 ### Production resource-manager design (not yet implemented)
 

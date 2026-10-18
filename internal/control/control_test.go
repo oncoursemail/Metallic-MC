@@ -156,7 +156,7 @@ func TestLogoutRevokesSession(t *testing.T) {
 func TestResourceAdmissionAndStarAIReadOnlyAccess(t *testing.T) {
 	cfg := Config{AdminUser: "admin", AdminPassword: "averysecurepassword", AgentToken: "this-is-a-long-secret-token-for-test", AIReadToken: "star-read-only-token-separate-test"}
 	h := New(cfg)
-	hb := Heartbeat{NodeID: "node-safe", Hostname: "secret-hostname", CPUPercent: 12, CPUThreads: 16, CPUPressureSome10: 0.5, MemPressureSome10: 0, Load1: 2, MemoryTotal: 64 * (1 << 30), MemoryUsed: 20 * (1 << 30), DiskTotal: 256 * (1 << 30), DiskUsed: 60 * (1 << 30)}
+	hb := Heartbeat{NodeID: "node-safe", Hostname: "secret-hostname", CPUPercent: 12, CPUThreads: 16, CPUPressureSome10: 0.5, MemPressureSome10: 0, PressureAvailable: true, Load1: 2, MemoryTotal: 64 * (1 << 30), MemoryUsed: 20 * (1 << 30), DiskTotal: 256 * (1 << 30), DiskUsed: 60 * (1 << 30)}
 	body, _ := json.Marshal(hb)
 	req := httptest.NewRequest("POST", "/api/v1/heartbeat", bytes.NewReader(body))
 	req.Header.Set("Authorization", "Bearer "+cfg.AgentToken)

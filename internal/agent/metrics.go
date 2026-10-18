@@ -254,16 +254,19 @@ func Sample(ctx context.Context, nodeID, hostname, diskPath string, services []c
 	if swapFree > swapTotal {
 		return control.Heartbeat{}, errors.New("invalid swap statistics")
 	}
-	cpuPSI, err := pressureSome10("/proc/pressure/cpu")
-	if err != nil {
-		return control.Heartbeat{}, fmt.Errorf("CPU pressure sample: %w", err)
+	cpuPSI, cpuErr := pressureSome10("/proc/pressure/cpu")
+	memoryPSI, memErr := pressureSome10("/proc/pressure/memory")
+	// Some sandboxed hosts omit PSI files. Keep reporting telemetry, but
+	// explicitly mark pressure as unknown so placement remains fail-closed.
+	pressureAvailable := cpuErr == nil && memErr == nil
+	if cpuErr != nil && !errors.Is(cpuErr, os.ErrNotExist) {
+		return control.Heartbeat{}, fmt.Errorf("CPU PSI sample: %w", cpuErr)
 	}
-	memoryPSI, err := pressureSome10("/proc/pressure/memory")
-	if err != nil {
-		return control.Heartbeat{}, fmt.Errorf("memory pressure sample: %w", err)
+	if memErr != nil && !errors.Is(memErr, os.ErrNotExist) {
+		return control.Heartbeat{}, fmt.Errorf("memory PSI sample: %w", memErr)
 	}
 	return control.Heartbeat{NodeID: nodeID, Hostname: hostname, CPUPercent: cpu,
-		CPUThreads: uint32(runtime.NumCPU()), CPUPressureSome10: cpuPSI, MemPressureSome10: memoryPSI,
+		CPUThreads: uint32(runtime.NumCPU()), CPUPressureSome10: cpuPSI, MemPressureSome10: memoryPSI, PressureAvailable: pressureAvailable,
 		MemoryUsed: memUsed, MemoryTotal: memTotal, SwapTotal: swapTotal, SwapUsed: swapTotal - swapFree,
 		DiskUsed: diskUsed, DiskTotal: diskTotal, Load1: load, UptimeSeconds: uptime,
 		Instances: ProbeServices(ctx, services)}, nil

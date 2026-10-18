@@ -6,7 +6,7 @@ import (
 )
 
 func goodHost() Host {
-	return Host{ID: "test-node", Online: true, CPUThreads: 16, CPUPercent: 20, Load1: 3, CPUPressureSome10: 0, MemPressureSome10: 0, MemoryTotal: 64 * GiB, MemoryUsed: 20 * GiB, DiskTotal: 256 * GiB, DiskUsed: 45 * GiB, SwapTotal: 4 * GiB, SwapUsed: 0}
+	return Host{ID: "test-node", Online: true, CPUThreads: 16, CPUPercent: 20, Load1: 3, CPUPressureSome10: 0, MemPressureSome10: 0, PressureAvailable: true, MemoryTotal: 64 * GiB, MemoryUsed: 20 * GiB, DiskTotal: 256 * GiB, DiskUsed: 45 * GiB, SwapTotal: 4 * GiB, SwapUsed: 0}
 }
 func TestProfileIDsAndBudgets(t *testing.T) {
 	seen := map[string]bool{}
@@ -42,6 +42,25 @@ func TestNoPlacementWhenTelemetryMissingOrOffline(t *testing.T) {
 		}
 	}
 }
+func TestPreviewFailsClosedWithoutPressure(t *testing.T) {
+	h := goodHost()
+	h.PressureAvailable = false
+	p, _ := FindProfile("mc-lobby")
+	r := Compute([]Host{h}, p)
+	if r.RecommendedNode != "" || r.Candidates[0].Admitted {
+		t.Fatalf("unsafe placement with unknown PSI: %+v", r)
+	}
+	found := false
+	for _, reason := range r.Candidates[0].Reasons {
+		if reason == "CPU/memory pressure metrics unavailable" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("missing fail-closed reason: %+v", r.Candidates[0])
+	}
+}
+
 func TestBusyHostIsRejected(t *testing.T) {
 	h := goodHost()
 	h.CPUPercent = 90

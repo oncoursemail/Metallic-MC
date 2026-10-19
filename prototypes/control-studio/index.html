@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101619">
+  <meta name="description" content="Metallic Control — experimental multi-concept infrastructure and Minecraft hosting interface.">
+  <title>Metallic Control / Prototype Studio</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a href="#main" class="skip">Skip to main content</a>
+  <div class="studio-bar" role="region" aria-label="Prototype design switcher">
+    <div class="studio-id"><span class="studio-icon">◇</span><strong>METALLIC / STUDIO</strong><span class="studio-tag">UX RESEARCH BUILD 01</span></div>
+    <div class="studio-variants" role="group" aria-label="Interface design concepts">
+      <button class="concept-switch" data-concept="foundry" aria-pressed="true"><span class="sample sample-foundry"></span><span>01 <b>Foundry</b></span></button>
+      <button class="concept-switch" data-concept="nocturne" aria-pressed="false"><span class="sample sample-nocturne"></span><span>02 <b>Nocturne</b></span></button>
+      <button class="concept-switch" data-concept="fieldnote" aria-pressed="false"><span class="sample sample-fieldnote"></span><span>03 <b>Fieldnote</b></span></button>
+    </div>
+    <div class="studio-actions">
+      <button id="accent-toggle" class="studio-small" title="Cycle accent styles">Accent <span aria-hidden="true">◉</span></button>
+      <button id="density-toggle" class="studio-small" title="Switch content density">Dense <span aria-hidden="true">↕</span></button>
+      <button id="reset-demo" class="studio-small" title="Reset simulated state">Reset demo <span aria-hidden="true">↺</span></button>
+      <a class="studio-small studio-archive" href="./archive/control-v02.html" target="_blank" rel="noopener" title="Open the preserved earlier design">Earlier draft ↗</a>
+    </div>
+  </div>
+  <div id="app" class="app-shell" data-concept="foundry" data-density="comfortable" data-accent="original">
+    <aside class="sidebar" aria-label="Product navigation">
+      <div class="brand-lockup" aria-label="Metallic Control">
+        <div class="brand-emblem" aria-hidden="true"><svg width="38" height="38" viewBox="0 0 38 38" fill="none"><path d="M5 8H30V14H13V30H7V8Z" fill="currentColor"/><path d="M17 18H33V24H23V33H17V18Z" fill="currentColor"/><path d="M30 6H34V10H30Z" fill="currentColor"/></svg></div>
+        <div class="brand-words"><strong>METALLIC</strong><small>CONTROL SYSTEM</small></div>
+      </div>
+      <div class="nav-label">WORKSPACE <span>01—07</span></div>
+      <nav class="primary-nav" id="primary-nav">
+        <button class="nav-item active" data-page="overview" aria-current="page"><span class="nav-symbol">◫</span><span>Overview</span><kbd>1</kbd></button>
+        <button class="nav-item" data-page="servers"><span class="nav-symbol">▤</span><span>Game servers</span><kbd>2</kbd></button>
+        <button class="nav-item" data-page="fleet"><span class="nav-symbol">⌘</span><span>Infrastructure</span><kbd>3</kbd></button>
+        <button class="nav-item" data-page="moderation"><span class="nav-symbol">◎</span><span>Moderation</span><span class="nav-count" id="nav-reports-count">3</span></button>
+        <button class="nav-item" data-page="star"><span class="nav-symbol">✳</span><span>Star AI Lab</span><kbd>5</kbd></button>
+        <button class="nav-item" data-page="legacy"><span class="nav-symbol">◴</span><span>Old Servers</span><span class="legacy-mini">LEGACY</span></button>
+        <button class="nav-item" data-page="audit"><span class="nav-symbol">≡</span><span>Audit history</span><kbd>7</kbd></button>
+      </nav>
+      <div class="sidebar-separator"></div>
+      <div class="nav-label">ENVIRONMENT</div>
+      <div class="env-summary"><span class="env-bullet"></span><span><strong>Design sandbox</strong><small>No live server access</small></span><span class="env-arrow">↗</span></div>
+      <div class="sidebar-spacer"></div>
+      <div class="side-footer"><div class="tiny-visual"><span></span><span></span><span></span><span></span><span></span></div><p>BUILT TO RUN ON<br><b>YOUR HARDWARE.</b></p></div>
+      <div class="account-block"><span class="avatar">MC</span><span><strong>Operator workspace</strong><small id="sidebar-role">Administrator · demonstration</small></span><span class="account-menu">⋯</span></div>
+    </aside>
+    <div class="app-main">
+      <header class="topbar"><div class="breadcrumbs"><span class="crumb-root">METALLIC</span><span class="crumb-divider">/</span><span class="crumb-product">CONTROL</span><span class="crumb-divider">/</span><b id="crumb-current">Overview</b></div>
+        <div class="top-right"><button class="search-trigger" id="search-trigger" aria-label="Search commands and servers"><span>⌕</span> Search anything... <kbd>⌘ K</kbd></button><span class="mode-badge"><i></i> SANDBOX</span><button id="top-notifications" class="icon-button" aria-label="Open moderation reports">♧<span class="notification-dot"></span></button><span class="top-avatar" title="Operator demonstration">MC</span></div>
+      </header>
+      <div class="page-body"><main id="main" tabindex="-1" aria-live="off"></main></div>
+      <footer class="statusbar"><span><i class="tiny-dot"></i> UI PROTOTYPE / ALL TELEMETRY SIMULATED</span><span id="statusbar-context">Build 0.3 · October 2026</span><span>METALLIC INSTRUMENTS &nbsp; / &nbsp; 001</span></footer>
+    </div>
+    <div id="drawer-root"></div>
+    <div id="modal-root"></div>
+    <div id="toast-root" role="status" aria-live="polite"></div>
+  </div>
+  <script src="./app.js" defer></script>
+</body>
+</html>

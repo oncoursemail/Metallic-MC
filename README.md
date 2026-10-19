@@ -1,8 +1,10 @@
-# METALLIC / Minecraft Network
+# Metallic-MC — Minecraft Network
+
+**Project naming:** [Metallic-RC / Metallic-MC / Metallic-RB / Metallic-PX](docs/PROJECT_IDENTITIES.md). Family domain: **Metallic.club** (application routing is not configured by this repository change).
 
 **Private, self-hosted Minecraft Java + Bedrock network infrastructure.**
 
-Metallic is being designed as a complete game network with a dedicated public edge, custom game services, a cluster control plane, observability, and an eventual hosting platform. It is intended to scale horizontally across hardware owned by Metallic.
+Metallic-MC is being designed as a complete game network with a dedicated public edge, custom game services, a cluster control plane, observability, and an eventual hosting platform. It is intended to scale horizontally across hardware owned by Metallic.
 
 > **Current stage: foundation prototype, not production deployment.** The repository includes a real read-only dashboard, a conservative resource-placement preview, an opt-in scoped Star AI status API, and a Linux metrics agent. It does **not** yet launch Minecraft instances, host games, implement DDoS protection, provide secure multi-tenancy, store telemetry persistently, or contain a custom Minecraft engine. A successful `go test` is not a game-server load benchmark.
 
@@ -20,7 +22,7 @@ Metallic is being designed as a complete game network with a dedicated public ed
 1. Authenticated **Metallic Control** web application with four functional pages: Overview, Compute Nodes, Game Services, Operations.
 2. A Linux **Metallic Agent** that sends real CPU, RAM, disk, load and system uptime metrics; can perform configured TCP reachability checks.
 3. Private-by-default local binding, authenticated agent heartbeat, rate-limited admin login, secure session cookies, body-size caps, CSP and response headers.
-4. Resource Manager page: preview placement of **Metallic MC**, **Metallic**, and **Star AI** workloads using real current node metrics and conservative headroom checks; no allocation is performed.
+4. Resource Manager page: preview placement of **Metallic-MC**, **Metallic-RC**, and **Star AI** workloads using real current node metrics and conservative headroom checks; no allocation is performed.
 5. Opt-in **Star AI read-only status API** under `/api/v1/ai/context`, using its own 24+ character token; disabled by default and exposes no credentials, local addresses or hostnames.
 6. Expanded Linux agent telemetry: logical CPU threads, PSI CPU and memory pressure, swap used/total, in addition to existing metrics.
 7. No fake sample player counts, no command-execution endpoint, no preloaded dummy servers, and no privileged remote agent operations.
@@ -77,7 +79,7 @@ docs/benchmarks.md       Test methodology, profiling and release gates
 docs/roadmap.md          Versioned implementation phases and product vision
 docs/hardware.md         Your physical-server discovery worksheet
 docs/hardware-snapshot.md Sanitized read-only inventory of your two connected machines
-docs/shared-platform.md  Shared Star AI / Metallic / Metallic MC architecture and scheduler choices
+docs/shared-platform.md  Shared Star AI / Metallic-RC / Metallic-MC architecture and scheduler choices
 docs/star-ai-integration.md Scoped AI status API and safe in-game AI integration architecture
 infra/                   Future edge, proxy, node and telemetry deployment manifests
 ```

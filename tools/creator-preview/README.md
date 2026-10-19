@@ -1,4 +1,4 @@
-# Metallic creator experience preview
+# Metallic-MC creator experience preview
 
 Open `index.html` directly in a browser. It is a standalone design prototype with embedded CSS and JavaScript; it needs no packages, server, sign-in, or network requests. It does not modify the existing control UI or its open design branches.
 

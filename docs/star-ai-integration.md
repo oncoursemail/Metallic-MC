@@ -38,7 +38,7 @@ Important: the response is an **observation**, not a command authorization. Star
 3. Add a **learning scheduler gate** using protected gameplay load and CPU/memory pressure; checkpoint/defer Star AI practice/evaluation jobs when active matches are consuming their reserved resource pools.
 4. Build a coding companion workflow: propose change -> branch + PR -> run static tests/game simulations -> review -> staged rollout -> observe -> rollback on regression. Star AI must not silently change its own grader, evaluation suites or production server files.
 
-## Later: Star AI inside Metallic Minecraft and Metallic (social game)
+## Later: Star AI inside Metallic-MC and Metallic-RC (social game)
 
 **Do not run an LLM inference call synchronously on Minecraft's main/region thread or social-game frame loop.**
 

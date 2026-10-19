@@ -53,3 +53,15 @@ Root inspected the Star ownership/deadline changes, benchmark validation and sco
 ## Remaining release evidence
 
 Review the draft PRs, execute the full application's required checks in its complete checkout, then test a staging integration. Production network approval needs actual provider protocol/tenancy coverage, assigned endpoints, origin and egress isolation, supported client joins, route/MTU/loss observations and failure rehearsal. Performance claims need independently collected matched traces and correctness results; file digests alone do not establish truth.
+
+## Subsequent GitHub results
+
+Metallic Go foundation checks succeeded for implementation head `ce413cdcf8da553ac8d323cd9a63c5d731f59bdc`: https://github.com/oncoursemail/metallic-mc/actions/runs/39205328723 .
+
+Star Linux offline Python checks on head `a315d077157de6a3150aa1835dfc83c7ff48a571` reported 9,631 passed, 90 skipped and 4 warnings. The Python type-check job passed. React compilation/tests/browser rendering completed; screenshot upload and desktop bundle handoff failed because GitHub reported artifact storage quota exhaustion. Windows/build/release jobs were skipped. The protected-review workflow could not fetch `pull/497/head` and failed before executing the diff guard; one targeted retry encountered the same failure.
+
+- Offline workflow: https://github.com/oncoursemail/Star-AI-Private/actions/runs/39205327273
+- Protected-review workflow: https://github.com/oncoursemail/Star-AI-Private/actions/runs/39205327338
+- Desktop workflow: https://github.com/oncoursemail/Star-AI-Private/actions/runs/39205327276
+
+The later Linux results extend the initial local receipt. They do not establish a fully green Star PR, completed Windows validation or a released application. Existing artifact-cleanup and private-guard work remains separate. No checks were removed, rerouted or relabeled.

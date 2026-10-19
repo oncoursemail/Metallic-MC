@@ -16,6 +16,14 @@ const servers=load('servers');assert(servers.html().includes('Community Test Rea
 servers.click(servers.button({openServer:'community-07'}));assert(servers.drawer().includes('Community Test Realm'));assert(servers.drawer().includes('Suspend'));
 servers.click(servers.button({action:'suspend',target:'community-07'}));assert(servers.modal().includes('Required'));servers.formSubmit('action-form',{reason:'Confirmed repeated and verified policy violations.'});assert(servers.html().includes('SUSPENDED'));assert(servers.drawer().includes('Unsuspend'));
 servers.click(servers.button({action:'archive',target:'community-07'}));servers.formSubmit('action-form',{reason:'Authorized archive of test server.',confirm:'Community Test Realm'});assert(servers.drawer().includes('ARCHIVED'));
+const archival=load('servers');archival.click(archival.button({openServer:'community-07'}));
+archival.click(archival.button({action:'archive',target:'community-07'}));archival.formSubmit('action-form',{reason:'Administrative retention before migration.',confirm:'Community Test Realm'});
+assert(archival.drawer().includes('ARCHIVED'));archival.els['#toast-undo'].onclick();
+assert(archival.drawer().includes('RUNNING'));assert(archival.drawer().includes('12 / 40'));
+const created=load('servers');created.click(created.button({action:'create'}));
+created.formSubmit('create-form',{name:'<img src=x onerror=alert(1)>',software:'Paper',node:'starai'});
+assert(!created.html().includes('<img src=x'));assert(created.html().includes('&lt;img src=x'));
+assert(!/\bfetch\s*\(|XMLHttpRequest|new\s+WebSocket/.test(source),'Preview must never use real network calls');
 const moderation=load('moderation');assert(moderation.html().includes('REPORT QUEUE'));moderation.handlers.change({target:{id:'role-switch',value:'viewer'}});moderation.click(moderation.button({action:'playerban',target:'DemoPlayer_42'}));assert(!moderation.modal().includes('Ban player'));
 moderation.handlers.change({target:{id:'role-switch',value:'moderator'}});moderation.click(moderation.button({action:'playerban',target:'DemoPlayer_42'}));assert(moderation.modal().includes('Ban player'));moderation.formSubmit('action-form',{reason:'Reviewed report evidence and approved temporary ban.'});assert(moderation.html().includes('REPORT QUEUE / 2'));
 const star=load('star');assert(star.html().includes('Engineering hypotheses'));star.click(star.button({action:'stage-ai',target:'AI-028'}));star.formSubmit('action-form',{reason:'Measure the isolated test against baseline'});assert(star.html().includes('IN STAGING'));

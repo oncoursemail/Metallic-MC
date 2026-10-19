@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	SchemaVersion            = "metallic.benchmark-gate/v1"
+	SchemaVersion            = "metallic.benchmark-gate/v2"
 	MaxInputBytes            = 512 << 10
 	MaxTraceBytes      int64 = 16 << 20
 	MaxTotalTraceBytes int64 = 128 << 20
@@ -44,7 +44,7 @@ type Engine struct {
 }
 
 // Match contains controlled dimensions. Engine identity deliberately lives
-// outside this structure: the only permitted change in v1 is engineArtifact.
+// outside this structure: the only permitted change is engineArtifact.
 type Match struct {
 	HardwareSHA256         string         `json:"hardwareSHA256"`
 	RuntimeSHA256          string         `json:"runtimeSHA256"`
@@ -115,7 +115,7 @@ type Artifact struct {
 	SampleCount uint64 `json:"sampleCount"`
 }
 
-// Policy is intentionally fixed in v1. These are proposed screening thresholds,
+// Policy is intentionally fixed. These are proposed screening thresholds,
 // not measured service guarantees or a replacement for a statistical analysis.
 type Policy struct {
 	MinimumRepetitions           int     `json:"minimumRepetitions"`
@@ -153,15 +153,16 @@ type Comparison struct {
 }
 
 type Result struct {
-	Status          string       `json:"status"`
-	EvidenceMode    string       `json:"evidenceMode"`
-	ProductionReady bool         `json:"productionReady"`
-	Policy          Policy       `json:"policy"`
-	BaselineEngine  Engine       `json:"baselineEngine"`
-	CandidateEngine Engine       `json:"candidateEngine"`
-	Issues          []Issue      `json:"issues"`
-	Comparisons     []Comparison `json:"comparisons"`
-	Limitations     []string     `json:"limitations"`
+	Status          string         `json:"status"`
+	EvidenceMode    string         `json:"evidenceMode"`
+	ProductionReady bool           `json:"productionReady"`
+	Policy          Policy         `json:"policy"`
+	BaselineEngine  Engine         `json:"baselineEngine"`
+	CandidateEngine Engine         `json:"candidateEngine"`
+	Issues          []Issue        `json:"issues"`
+	Comparisons     []Comparison   `json:"comparisons"`
+	TraceSummaries  []TraceSummary `json:"traceSummaries"`
+	Limitations     []string       `json:"limitations"`
 }
 
 func (r *Result) add(code, path, message string) {
@@ -300,13 +301,15 @@ func validPath(p string) bool {
 
 // Screen requires local trace verification even when called without the CLI.
 // Empty roots, synthetic data and incomplete/mismatched evidence fail closed.
-// Trace digests verify identity only: metrics and collection remain assertions.
+// Metrics are recomputed from the exact bytes hashed on confined descriptors.
+// Collection provenance and correctness of the observed game remain external.
 func Screen(report Report, artifactRoot string, now time.Time) Result {
 	r := Result{Status: "insufficient_evidence", EvidenceMode: "summary_screening_only", Policy: DefaultPolicy(),
-		Issues: []Issue{}, Comparisons: []Comparison{},
+		Issues: []Issue{}, Comparisons: []Comparison{}, TraceSummaries: []TraceSummary{},
 		Limitations: []string{
 			"Offline descriptive screening only; no load was generated and no deployment is authorized.",
-			"Verified trace hashes prove file identity, not authentic collection or correctness of asserted metrics, sample counts, or invariants.",
+			"Counts, nearest-rank p99 and 50 ms tick-duration misses are recomputed from imported records; authentic collection and accuracy of raw observations are not independently verified.",
+			"Correctness records are separate required recorder assertions; their completeness and consistency are checked, not the actual game behavior.",
 			"Engine and matched-dimension hashes are imported assertions; their source artifacts are not independently verified here.",
 			"Passing allows no claim of statistical significance, universal superiority, faster performance, DDoS protection, or production readiness.",
 		}}
@@ -320,11 +323,14 @@ func Screen(report Report, artifactRoot string, now time.Time) Result {
 		r.add("unverified", "artifactRoot", "explicit artifact root is required for trace verification")
 		return r
 	}
-	if err := verifyArtifacts(report, artifactRoot); err != nil {
+	verified, summaries, err := verifyArtifacts(report, artifactRoot)
+	if err != nil {
 		r.add("artifact", "traces", err.Error())
 		return r
 	}
-	r.EvidenceMode = "trace_identity_verified"
+	report = verified
+	r.TraceSummaries = summaries
+	r.EvidenceMode = "trace_metrics_recomputed"
 	baseline := map[string]Repetition{}
 	for _, rep := range report.Baseline.Repetitions {
 		baseline[rep.PairID] = rep
@@ -391,7 +397,7 @@ func validate(report Report, now time.Time, r *Result) {
 		r.add("evidence_kind", "evidenceKind", "only explicitly measured evidence is eligible; synthetic or unknown evidence cannot pass")
 	}
 	if len(report.DeclaredChanges) != 1 || report.DeclaredChanges[0] != "engineArtifact" {
-		r.add("change", "declaredChanges", "v1 requires exactly the declared engineArtifact change")
+		r.add("change", "declaredChanges", "v2 requires exactly the declared engineArtifact change")
 	}
 	if report.Baseline.ID == report.Candidate.ID {
 		r.add("duplicate", "run.id", "baseline and candidate run IDs must differ")
@@ -448,7 +454,7 @@ func validate(report Report, now time.Time, r *Result) {
 				}
 				intervals = append(intervals, interval{start, end, rep.ID})
 			}
-			if rep.TickSamples < r.Policy.MinimumTickSamples || rep.TickSamples > 1000000000 || rep.InteractionSamples < r.Policy.MinimumInteractionSamples || rep.InteractionSamples > 1000000000 {
+			if rep.TickSamples < r.Policy.MinimumTickSamples || rep.TickSamples > MaxTraceSamples || rep.InteractionSamples < r.Policy.MinimumInteractionSamples || rep.InteractionSamples > MaxTraceSamples {
 				r.add("insufficient", path+".samples", "insufficient or implausibly large raw sample counts")
 			}
 			if !validMetric(rep.Metrics.P99TickMS, false) || !validMetric(rep.Metrics.P99InteractionMS, false) || !validMetric(rep.Metrics.DeadlineMissFraction, true) {
@@ -461,7 +467,7 @@ func validate(report Report, now time.Time, r *Result) {
 			}
 			for _, entry := range artifacts(rep.Traces) {
 				a := entry.artifact
-				if !validPath(a.Path) || !hashPattern.MatchString(a.SHA256) || a.SizeBytes <= 0 || a.SizeBytes > MaxTraceBytes || a.SampleCount == 0 || a.SampleCount > 1000000000 {
+				if !validPath(a.Path) || !hashPattern.MatchString(a.SHA256) || a.SizeBytes <= 0 || a.SizeBytes > MaxTraceBytes || a.SampleCount == 0 || a.SampleCount > MaxTraceSamples {
 					r.add("invalid", path+".traces."+entry.name, "nonempty trace requires a scoped relative path, lowercase SHA-256, valid size and sample count")
 				}
 				if seenPaths[a.Path] {
@@ -556,51 +562,91 @@ func sameMatch(a, b Match) bool {
 	return reflect.DeepEqual(a, b)
 }
 
-func verifyArtifacts(report Report, rootPath string) error {
+func verifyArtifacts(report Report, rootPath string) (Report, []TraceSummary, error) {
 	root, err := openArtifactRoot(rootPath)
 	if err != nil {
-		return fmt.Errorf("open artifact root: %w", err)
+		return Report{}, nil, fmt.Errorf("open artifact root: %w", err)
 	}
 	defer root.Close()
-	for _, run := range []Run{report.Baseline, report.Candidate} {
-		for _, rep := range run.Repetitions {
+	// Do not alter a caller's slices or declared values during recomputation.
+	verified := report
+	verified.Baseline.Repetitions = append([]Repetition(nil), report.Baseline.Repetitions...)
+	verified.Candidate.Repetitions = append([]Repetition(nil), report.Candidate.Repetitions...)
+	var summaries []TraceSummary
+	for _, run := range []*Run{&verified.Baseline, &verified.Candidate} {
+		for index := range run.Repetitions {
+			rep := &run.Repetitions[index]
+			traces := map[string]TraceSummary{}
 			for _, entry := range artifacts(rep.Traces) {
-				if err := verifyArtifact(root, entry.artifact); err != nil {
-					return fmt.Errorf("%s/%s/%s: %w", run.ID, rep.ID, entry.name, err)
+				summary, err := verifyArtifact(root, entry.artifact)
+				if err != nil {
+					return Report{}, nil, fmt.Errorf("%s/%s/%s: %w", run.ID, rep.ID, entry.name, err)
 				}
+				if summary.Kind != entry.name || summary.RunID != run.ID || summary.RepetitionID != rep.ID ||
+					summary.EvidenceKind != report.EvidenceKind || summary.DurationNS != uint64(rep.DurationSeconds)*1_000_000_000 ||
+					summary.SampleCount != entry.artifact.SampleCount {
+					return Report{}, nil, fmt.Errorf("%s/%s/%s: trace identity/window/count does not match the manifest", run.ID, rep.ID, entry.name)
+				}
+				traces[entry.name] = summary
+				summaries = append(summaries, summary)
 			}
+			ticks, interactions := traces["ticks"], traces["interactions"]
+			p99Tick, p99Interaction := float64(*ticks.P99NS)/1_000_000, float64(*interactions.P99NS)/1_000_000
+			deadlineMisses := float64(*ticks.DeadlineMissCount) / float64(ticks.SampleCount)
+			if math.Round(*rep.Metrics.P99TickMS*1_000_000) != float64(*ticks.P99NS) ||
+				math.Round(*rep.Metrics.P99InteractionMS*1_000_000) != float64(*interactions.P99NS) ||
+				math.Abs(*rep.Metrics.DeadlineMissFraction-deadlineMisses) > 1e-12 {
+				return Report{}, nil, fmt.Errorf("%s/%s: declared metrics do not match recomputed trace values", run.ID, rep.ID)
+			}
+			checks := *traces["correctness"].Correctness
+			if !reflect.DeepEqual(rep.Correctness, checks) {
+				return Report{}, nil, fmt.Errorf("%s/%s: declared correctness does not match the independent correctness trace", run.ID, rep.ID)
+			}
+			rep.TickSamples, rep.InteractionSamples = ticks.SampleCount, interactions.SampleCount
+			rep.Metrics = Metrics{&p99Tick, &p99Interaction, &deadlineMisses}
+			rep.Correctness = checks
 		}
 	}
-	return nil
+	return verified, summaries, nil
 }
 
-func verifyArtifact(root artifactRoot, a Artifact) error {
+// Parse and hash a trace in one pass over one already-confined descriptor. Do
+// not reopen a path between integrity verification and interpreting its data.
+func verifyArtifact(root artifactRoot, a Artifact) (TraceSummary, error) {
 	f, err := root.Open(a.Path)
 	if err != nil {
-		return fmt.Errorf("open scoped regular trace: %w", err)
+		return TraceSummary{}, fmt.Errorf("open scoped regular trace: %w", err)
 	}
 	defer f.Close()
 	before, err := f.Stat()
 	if err != nil {
-		return err
+		return TraceSummary{}, err
 	}
 	if !before.Mode().IsRegular() || before.Size() != a.SizeBytes {
-		return errors.New("trace must be regular and match declared nonzero byte size")
+		return TraceSummary{}, errors.New("trace must be regular and match declared nonzero byte size")
 	}
 	h := sha256.New()
-	n, err := io.Copy(h, io.LimitReader(f, MaxTraceBytes+1))
+	count := &traceByteCounter{}
+	summary, err := ReadTrace(io.TeeReader(f, io.MultiWriter(h, count)))
 	if err != nil {
-		return err
+		return TraceSummary{}, err
 	}
-	if n != a.SizeBytes || hex.EncodeToString(h.Sum(nil)) != a.SHA256 {
-		return errors.New("trace size or SHA-256 does not match")
+	if count.bytes != a.SizeBytes || hex.EncodeToString(h.Sum(nil)) != a.SHA256 {
+		return TraceSummary{}, errors.New("trace size or SHA-256 does not match")
 	}
 	after, err := f.Stat()
 	if err != nil {
-		return err
+		return TraceSummary{}, err
 	}
 	if after.Size() != before.Size() || !after.ModTime().Equal(before.ModTime()) {
-		return errors.New("trace changed while being read")
+		return TraceSummary{}, errors.New("trace changed while being read")
 	}
-	return nil
+	return summary, nil
+}
+
+type traceByteCounter struct{ bytes int64 }
+
+func (c *traceByteCounter) Write(p []byte) (int, error) {
+	c.bytes += int64(len(p))
+	return len(p), nil
 }

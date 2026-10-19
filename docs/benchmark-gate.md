@@ -1,12 +1,12 @@
 # Offline benchmark evidence screening
 
-The benchmark gate screens an imported comparison of two engine artifacts under matched conditions. It reads local evidence, checks the identity of bounded trace files, and reports per-repetition outcomes. It runs no bots, sends no network requests, changes no server configuration and approves no deployment.
+The benchmark gate screens an imported comparison of two engine artifacts under matched conditions. It reads bounded local JSONL traces, recomputes sample counts, nearest-rank p99 and tick-duration deadline misses, verifies file identity, and reports per-repetition outcomes. It runs no bots, sends no network requests, changes no server configuration and approves no deployment.
 
-A result of `passed_screening` means the supplied evidence passed the proposed descriptive checks. It does **not** prove statistical significance, authentic collection, production readiness, DDoS protection or superiority to another Minecraft network. `productionReady` is always false. Trace hashes establish file identity; an external measurement harness must still establish that reported metrics, counts and correctness checks follow from those files.
+A result of `passed_screening` means the supplied evidence passed the proposed descriptive checks. It does **not** prove statistical significance, authentic collection, production readiness, DDoS protection or superiority to another Minecraft network. `productionReady` is always false. Counts and timing summaries must now agree with the raw records. An external measurement harness must still establish that those records are authentic and that its independent correctness assertions follow from actual gameplay.
 
 ## Run
 
-The v1 verifier targets Linux. Its traversal uses directory file descriptors and `O_NOFOLLOW` for every path component, rejecting symlink files and directories. Other operating systems fail closed with `insufficient_evidence`; they can still parse the schema.
+The verifier targets Linux. Its traversal uses directory file descriptors and `O_NOFOLLOW` for every path component, rejecting symlink files and directories. Other operating systems fail closed with `insufficient_evidence`; they can still parse the manifest and JSONL schemas.
 
 From the repository root:
 
@@ -35,12 +35,12 @@ Top-level fields are:
 
 | Field | Requirement |
 | --- | --- |
-| `schemaVersion` | Exactly `metallic.benchmark-gate/v1` |
+| `schemaVersion` | Exactly `metallic.benchmark-gate/v2`; legacy summary-only v1 cannot pass |
 | `evidenceKind` | `measured` for eligibility; synthetic, unknown or missing markers cannot pass |
-| `declaredChanges` | Exactly `["engineArtifact"]` in v1 |
+| `declaredChanges` | Exactly `["engineArtifact"]` in v2 |
 | `baseline`, `candidate` | Distinct run IDs, engine identity, controlled dimensions, and 3–30 repetitions each |
 
-The engine object requires `name`, `version` and a lowercase `sha256`. Baseline and candidate must have different engine hashes. Engine identity is deliberately separate from `match.configurationSHA256`, so the intended engine change does not invalidate its own comparison. Only engine artifact changes are admitted by this schema. Changes to JVM, plugin set, workload, rules or configuration require their own experiment design and a future schema, rather than disguising them as an engine change.
+The engine object requires `name`, `version` and a lowercase `sha256`. Baseline and candidate must have different engine hashes. Engine identity is deliberately separate from `match.configurationSHA256`, so the intended engine change does not invalidate its own comparison. Only engine artifact changes are admitted by this schema. Changes to JVM, plugin set, workload, rules or configuration require their own experiment design and a future schema, rather than disguising them as an engine change. The v2 change introduces mandatory raw-trace recomputation; it does not broaden the allowed experimental changes.
 
 ### Matched dimensions
 
@@ -68,19 +68,21 @@ For a crossplay performance claim, actually include representative Bedrock cohor
 
 Each repetition has a globally unique `id`, a `pairId` used once in each run, and `startedAt` as a UTC RFC3339 timestamp ending in `Z`. `startedAt` includes warmup. The collection window ends after `warmupSeconds + durationSeconds`. All windows must have completed and must not overlap on the matched hardware. This prevents simply reusing a collection window under another repetition ID, although it cannot prove real independent collection.
 
-Baseline and candidate must provide the same pair IDs, measured duration and warmup per pair. A repetition's `tickSamples` and `interactionSamples` must equal their trace descriptors' counts. Many ticks within one run are not statistically independent experimental repetitions.
+Baseline and candidate must provide the same pair IDs, measured duration and warmup per pair. A repetition's `tickSamples` and `interactionSamples` must equal their trace descriptors' counts and the actual parsed record counts. Each trace is capped at 200,000 samples. Many ticks within one run are not statistically independent experimental repetitions.
 
-`metrics` requires explicit `p99TickMs`, `p99InteractionMs`, and `deadlineMissFraction`. Latencies must be finite, positive and at most 60,000 ms. The deadline-miss fraction must be in [0,1]. Missing/null values are distinct from a genuine zero fraction. Average TPS alone cannot satisfy the schema.
+`metrics` requires explicit `p99TickMs`, `p99InteractionMs`, and `deadlineMissFraction`. Latencies must be finite, positive and at most 60,000 ms. The deadline-miss fraction must be in [0,1]. Missing/null values are distinct from a genuine zero fraction. Imported p99 values must round to the recomputed integer nanosecond value; the deadline fraction must agree within an absolute tolerance of `1e-12`. Comparisons always use the recomputed values, not the declared summaries. Average TPS alone cannot satisfy the schema.
 
-`correctness` requires explicit results for `inventoryConserved`, `economyConserved`, `persistencePassed`, `transfersPassed`, and `pluginCompatibilityPassed`. Missing results make evidence insufficient. A false result in either run fails screening. Define the required plugin/API behavior in the matched gameplay contract; a pluginless custom arena cannot claim Paper compatibility merely by setting a flag.
+`correctness` requires explicit results for `inventoryConserved`, `economyConserved`, `persistencePassed`, `transfersPassed`, and `pluginCompatibilityPassed`. The separate correctness trace must include exactly one explicit result for each check and agree with the manifest. Missing or inconsistent results make evidence insufficient. A matching false result in either run fails screening. Timing results never infer gameplay correctness. Define the required plugin/API behavior in the matched gameplay contract; a pluginless custom arena cannot claim Paper compatibility merely by setting a flag.
 
 ### Trace artifacts
 
-Every repetition requires three descriptors: `traces.ticks`, `traces.interactions`, and `traces.correctness`. Each has `path`, `sha256`, `sizeBytes`, and `sampleCount`. Correctness must record at least five asserted checks. Paths must be relative, use `/`, and contain no `.`/`..` components, drive letter, URL or backslash. Each descriptor path must be distinct across repetitions.
+Every repetition requires three descriptors: `traces.ticks`, `traces.interactions`, and `traces.correctness`. Each has `path`, `sha256`, `sizeBytes`, and `sampleCount`. Correctness must record exactly five named checks. Paths must be relative, use `/`, and contain no `.`/`..` components, drive letter, URL or backslash. Each descriptor path must be distinct across repetitions.
 
-The verifier opens files beneath the explicit artifact root, accepts regular files only, checks exact nonzero size and SHA-256, and detects size/mtime changes while reading. It rejects missing files, symlinks, directories and FIFOs. A single trace is capped at 16 MiB and the declared total at 128 MiB; hashing is streamed. Keep evidence immutable during import. The supported target is normal local storage; the verifier does not provide a wall-clock guarantee for a hung filesystem.
+The verifier opens files beneath the explicit artifact root, accepts regular files only, checks exact nonzero size and SHA-256, and detects size/mtime changes while reading. Parsing and hashing use the same open descriptor in one pass. It rejects missing files, symlinks, directories and FIFOs. A single trace is capped at 16 MiB and the declared total at 128 MiB; hashing is streamed. Keep evidence immutable during import. The supported target is normal local storage; the verifier does not provide a wall-clock guarantee for a hung filesystem.
 
-The raw trace **format is externally defined** in v1. This tool does not parse trace rows, calculate quantiles, validate actual row counts or recompute correctness assertions. Those tasks belong to a pinned external harness and review. The output is therefore called `trace_identity_verified`, not “measurements verified.” Authentic collection also cannot be established merely by changing an evidence marker to `measured`.
+All three traces must use the documented [`metallic.benchmark-trace/v1` JSONL format](benchmark-traces.md): a bound header, contiguous sequence numbers, ordered timestamps, and a completion footer with explicit zero dropped and incomplete samples. Missing final newlines, partial files, malformed records, unsupported schemas, duplicate/unknown fields, wrong identities/windows and count disagreements fail closed. Exactly five independent correctness records are required.
+
+The successful evidence mode is `trace_metrics_recomputed`. `traceSummaries` reports the parsed counts, exact p99 nanoseconds, tick-duration misses and independent correctness assertions. Authentic collection still cannot be established merely by changing an evidence marker to `measured`. No live measurement collector is installed by this importer.
 
 ## Proposed policy
 
@@ -101,7 +103,7 @@ These defaults are design proposals for preliminary screening. They are not benc
 
 Every matched pair is evaluated; a good run cannot average away a bad one. Baseline and candidate results must use the same definition of tick and interaction, including hotspot/region scope. Run separate comparisons for dense lobbies, spread SMP, exploration, crowded hotspots, combat, creator edits, lifecycle and multi-tenant contention. Do not pool dissimilar workloads into one flattering result.
 
-`tickDeltaMs` and `interactionDeltaMs` are candidate minus baseline; negative is an improvement in the asserted p99. The output reports `tickImproved` and `interactionImproved` independently. A small regression within tolerance can pass screening and will still be reported as a regression. Passing is not itself a “faster” claim. No confidence interval or hypothesis test is calculated; repeated runs and external statistical analysis remain necessary.
+`tickDeltaMs` and `interactionDeltaMs` are candidate minus baseline; negative is an improvement in the recomputed p99. The output reports `tickImproved` and `interactionImproved` independently. A small regression within tolerance can pass screening and will still be reported as a regression. Passing is not itself a “faster” claim. No confidence interval or hypothesis test is calculated; repeated runs and external statistical analysis remain necessary.
 
 ## Example and tests
 
@@ -114,4 +116,4 @@ Every matched pair is evaluated; a good run cannot average away a bad one. Basel
 go test ./internal/benchgate ./cmd/metallic-benchmark-gate
 ```
 
-The tests create isolated synthetic files to exercise verified-file behavior, engine-only comparisons, mismatch and future/overlap rejection, non-finite input, missing evidence, tail regressions, correctness failures, tampering, symlink traversal, directories, FIFO nonblocking behavior and CLI exit status. They test the importer, not Minecraft capacity.
+The tests create isolated synthetic files to exercise nearest-rank arithmetic, deadline boundaries, record ordering/completion, malformed and oversized traces, raw/summary disagreement, independent correctness failures, engine-only comparisons, future/overlap rejection, tampering, symlink traversal, directories, FIFO nonblocking behavior and CLI exit status. They test the importer, not Minecraft capacity.

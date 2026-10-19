@@ -13,5 +13,5 @@ type artifactRoot interface {
 }
 
 func openArtifactRoot(string) (artifactRoot, error) {
-	return nil, errors.New("v1 scoped artifact verification requires Linux; no screening pass is available on this platform")
+	return nil, errors.New("scoped artifact verification requires Linux; no screening pass is available on this platform")
 }

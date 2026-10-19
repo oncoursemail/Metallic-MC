@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "metallic.benchmark-gate/v1",
+  "schemaVersion": "metallic.benchmark-gate/v2",
   "evidenceKind": "synthetic",
   "declaredChanges": [
     "engineArtifact"

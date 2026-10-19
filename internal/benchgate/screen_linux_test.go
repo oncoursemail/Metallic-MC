@@ -36,28 +36,71 @@ func fixture(t *testing.T) (Report, string) {
 		for i := 0; i < 3; i++ {
 			rep := Repetition{ID: fmt.Sprintf("%s-r%d", run.ID, i), PairID: fmt.Sprintf("pair-%d", i), StartedAt: testNow().Add(-24*time.Hour + time.Duration(index*3600+i*900)*time.Second).Format(time.RFC3339), WarmupSeconds: 120, DurationSeconds: 600, TickSamples: 12000, InteractionSamples: 1200,
 				Metrics: Metrics{ptr(30.0 - float64(index)), ptr(80.0 - float64(index)), ptr(0.001)}, Correctness: Correctness{ptr(true), ptr(true), ptr(true), ptr(true), ptr(true)}}
-			for j, a := range []*Artifact{&rep.Traces.Ticks, &rep.Traces.Interactions, &rep.Traces.Correctness} {
-				path := rep.ID + "-" + []string{"ticks", "interactions", "correctness"}[j] + ".txt"
-				data := "SYNTHETIC UNIT TEST; importer does not derive metrics from this text. " + path + "\n"
-				if err := os.WriteFile(filepath.Join(root, path), []byte(data), 0600); err != nil {
-					t.Fatal(err)
-				}
-				*a = Artifact{path, digest(data), int64(len(data)), []uint64{12000, 1200, 5}[j]}
-			}
 			run.Repetitions = append(run.Repetitions, rep)
 		}
 	}
+	writeFixtureTraces(t, &report, root)
 	return report, root
+}
+
+func writeFixtureTraces(t *testing.T, report *Report, root string) {
+	t.Helper()
+	for _, run := range []*Run{&report.Baseline, &report.Candidate} {
+		for index := range run.Repetitions {
+			rep := &run.Repetitions[index]
+			window := uint64(rep.DurationSeconds) * 1_000_000_000
+			for j, a := range []*Artifact{&rep.Traces.Ticks, &rep.Traces.Interactions, &rep.Traces.Correctness} {
+				kind := []string{"ticks", "interactions", "correctness"}[j]
+				path := rep.ID + "-" + kind + ".jsonl"
+				count := []uint64{rep.TickSamples, rep.InteractionSamples, 5}[j]
+				var data string
+				if kind == "correctness" {
+					data = correctnessTrace(run.ID, rep.ID, window, rep.Correctness)
+				} else {
+					p99 := *rep.Metrics.P99TickMS
+					if kind == "interactions" {
+						p99 = *rep.Metrics.P99InteractionMS
+					}
+					value := uint64(math.Round(p99 * 1_000_000))
+					durations := make([]uint64, count)
+					for i := range durations {
+						durations[i] = value
+					}
+					if kind == "ticks" {
+						misses := uint64(math.Round(*rep.Metrics.DeadlineMissFraction * float64(count)))
+						low, high := value, uint64(60_000_000)
+						if value > TickDeadlineNS {
+							low, high = 30_000_000, value
+						}
+						for i := uint64(0); i < count; i++ {
+							durations[i] = low
+							if i >= count-misses {
+								durations[i] = high
+							}
+						}
+					}
+					data = timingTrace(kind, run.ID, rep.ID, window, durations)
+				}
+				if err := os.WriteFile(filepath.Join(root, path), []byte(data), 0600); err != nil {
+					t.Fatal(err)
+				}
+				*a = Artifact{path, digest(data), int64(len(data)), count}
+			}
+		}
+	}
 }
 
 func TestMatchedEngineChangeWithScopedArtifacts(t *testing.T) {
 	report, root := fixture(t)
 	result := Screen(report, root, testNow())
-	if result.Status != "passed_screening" || result.EvidenceMode != "trace_identity_verified" || result.ProductionReady {
+	if result.Status != "passed_screening" || result.EvidenceMode != "trace_metrics_recomputed" || result.ProductionReady {
 		t.Fatalf("unexpected screening: %+v", result)
 	}
 	if len(result.Comparisons) != 3 || !result.Comparisons[0].TickImproved || result.Comparisons[0].TickDeltaMS != -1 {
 		t.Fatalf("missing descriptive comparison: %+v", result.Comparisons)
+	}
+	if len(result.TraceSummaries) != 18 || *result.TraceSummaries[0].P99NS != 30_000_000 || *result.TraceSummaries[0].DeadlineMissCount != 12 {
+		t.Fatalf("missing recomputed trace evidence: %+v", result.TraceSummaries)
 	}
 	if len(result.Limitations) < 4 {
 		t.Fatal("lost distinction between trace identity and verified measurement")
@@ -146,9 +189,14 @@ func TestAdverseOutcomesFailWithoutCallingEverythingFaster(t *testing.T) {
 		"interaction regression": func(r *Report) { r.Candidate.Repetitions[0].Metrics.P99InteractionMS = ptr(90.0) },
 		"tick ceiling": func(r *Report) {
 			r.Baseline.Repetitions[0].Metrics.P99TickMS = ptr(60.0)
+			r.Baseline.Repetitions[0].Metrics.DeadlineMissFraction = ptr(1.0)
 			r.Candidate.Repetitions[0].Metrics.P99TickMS = ptr(55.0)
+			r.Candidate.Repetitions[0].Metrics.DeadlineMissFraction = ptr(1.0)
 		},
-		"deadline misses":           func(r *Report) { r.Candidate.Repetitions[0].Metrics.DeadlineMissFraction = ptr(0.02) },
+		"deadline misses": func(r *Report) {
+			r.Candidate.Repetitions[0].Metrics.DeadlineMissFraction = ptr(0.02)
+			r.Candidate.Repetitions[0].Metrics.P99TickMS = ptr(60.0)
+		},
 		"candidate correctness":     func(r *Report) { r.Candidate.Repetitions[0].Correctness.EconomyConserved = ptr(false) },
 		"invalid baseline behavior": func(r *Report) { r.Baseline.Repetitions[0].Correctness.TransfersPassed = ptr(false) },
 	}
@@ -156,6 +204,7 @@ func TestAdverseOutcomesFailWithoutCallingEverythingFaster(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			report, root := fixture(t)
 			change(&report)
+			writeFixtureTraces(t, &report, root)
 			result := Screen(report, root, testNow())
 			if result.Status != "failed_screening" || result.ProductionReady {
 				t.Fatalf("adverse result passed: %+v", result)
@@ -169,6 +218,7 @@ func TestAdverseOutcomesFailWithoutCallingEverythingFaster(t *testing.T) {
 		report.Candidate.Repetitions[i].Metrics.P99TickMS = ptr(30.1)
 		report.Candidate.Repetitions[i].Metrics.P99InteractionMS = ptr(80.1)
 	}
+	writeFixtureTraces(t, &report, root)
 	result := Screen(report, root, testNow())
 	if result.Status != "passed_screening" || result.Comparisons[0].TickImproved || result.Comparisons[0].InteractionImproved || result.Comparisons[0].TickDeltaMS <= 0 {
 		t.Fatalf("tolerance was misrepresented as improvement: %+v", result)

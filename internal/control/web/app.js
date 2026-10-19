@@ -108,3 +108,5 @@ async function update() { try {const res=await fetch('/api/v1/overview',{cache:'
 document.querySelectorAll('[data-nav]').forEach(e=>e.addEventListener('click',()=>showPane(e.dataset.nav)));
 document.querySelectorAll('[data-target]').forEach(e=>e.addEventListener('click',()=>showPane(e.dataset.target)));
 update();setInterval(update,10000);
+
+fetch("/api/v1/architect/capabilities",{credentials:"same-origin"}).then(r=>{if(r.ok)document.getElementById("architect-link").hidden=false;}).catch(()=>{});

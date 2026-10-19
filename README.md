@@ -26,6 +26,19 @@ Metallic is being designed as a complete game network with a dedicated public ed
 7. No fake sample player counts, no command-execution endpoint, no preloaded dummy servers, and no privileged remote agent operations.
 8. Tests with Go's race detector, a CI workflow, architecture, threat model, load-test criteria, and deployment notes.
 
+## Metallic Architect: optional private workbench
+
+Set `METALLIC_ARCHITECT_ENABLED=true` and open `/architect` after signing in to try the new private workbench.
+
+- Discord identity linking with PKCE, browser/session binding, short-lived flows, replay rejection, unlinking, and identity-only metadata persistence. Requires your own configured Discord application.
+- Single-use host pairing, unique scoped credentials, revocation, bounded allocation records, and loopback route authorization plans. These are policy operations; they do not start Minecraft or create tunnels.
+- Read-only Hangar and Modrinth search and exact-version inspection with integrity/compatibility checks and explicit dependency blockers.
+- A restrained purple/silver interface for accounts, hardware and plugin inspection, with no fabricated downloads, public addresses or player statistics.
+
+The workbench is disabled by default and uses the existing private administrator, not public launcher accounts. Host state is in memory. A protected edge, native installer, isolated host executor, multi-user identity and public directory are later implementation gates.
+
+See the [workbench setup and API](docs/architect-workbench.md), [platform design and primary-source research](docs/architect-platform.md), [host policy contract](docs/hosting-agent-contract.md), and [plugin catalog contract](docs/plugin-catalog.md).
+
 ## Run the local development prototype
 
 Requires **Go 1.23+ on Linux**. Java 25 is required later to run current Paper 26.3, but is not needed to try Metallic Control.
@@ -47,7 +60,7 @@ go run ./cmd/metallic-agent
 
 Open **http://127.0.0.1:8080** and sign in with `admin` and the `METALLIC_ADMIN_PASSWORD` from terminal 1. These example service probes will read **unreachable** until Minecraft ports actually listen; that is expected. If you don't want service probes yet, leave `METALLIC_SERVICES` empty.
 
-Keep the control plane on `127.0.0.1` initially. For remote access, put it behind an authenticated HTTPS reverse proxy or a VPN; set `METALLIC_COOKIE_SECURE=true` and ensure transport end to end is trusted. Do not publish port 8080 to the internet. Agents on different nodes must use an HTTPS endpoint and an agent credential. Current foundation uses a shared agent token; per-node short-lived credentials and mTLS are production milestones.
+Keep the control plane on `127.0.0.1` initially. For remote access, put it behind an authenticated HTTPS reverse proxy or a VPN; set `METALLIC_COOKIE_SECURE=true` and ensure transport end to end is trusted. Do not publish port 8080 to the internet. Agents on different nodes must use an HTTPS endpoint and an agent credential. The read-only telemetry agent still uses a shared token. Architect host pairing uses separate per-host credentials for policy calls; authenticated live tunnels and mTLS remain deployment milestones.
 
 The resource planner is a **read-only what-if tool**; it does not book capacity or restrict existing Star AI processes. Real cgroup enforcement, safe persistent reservations and automatic game booting are **not yet implemented**.
 

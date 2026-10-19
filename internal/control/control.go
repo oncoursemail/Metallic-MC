@@ -18,6 +18,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/oncoursemail/metallic-mc/internal/catalog"
+	"github.com/oncoursemail/metallic-mc/internal/hosting"
+	"github.com/oncoursemail/metallic-mc/internal/identity"
 	"github.com/oncoursemail/metallic-mc/internal/resources"
 )
 
@@ -30,11 +33,13 @@ var web embed.FS
 var validID = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$`)
 
 type Config struct {
-	AdminUser     string
-	AdminPassword string
-	AgentToken    string
-	AIReadToken   string
-	SecureCookies bool
+	AdminUser        string
+	AdminPassword    string
+	AgentToken       string
+	AIReadToken      string
+	SecureCookies    bool
+	ArchitectEnabled bool
+	ArchitectOrigin  string
 }
 type Instance struct {
 	Name    string `json:"name"`
@@ -75,13 +80,19 @@ type nodeRecord struct {
 	seen      time.Time
 	history   []Sample
 }
-type session struct{ expiry time.Time }
+type session struct {
+	expiry          time.Time
+	authenticatedAt time.Time
+}
 type loginThrottle struct {
 	since    time.Time
 	attempts int
 }
 type Controller struct {
 	cfg      Config
+	discord  *identity.Service
+	hosts    *hosting.Service
+	catalog  *catalog.Client
 	mu       sync.RWMutex
 	nodes    map[string]nodeRecord
 	sessions map[string]session
@@ -91,12 +102,32 @@ type Controller struct {
 
 func New(cfg Config) http.Handler { return NewController(cfg).Handler() }
 func NewController(cfg Config) *Controller {
-	return &Controller{cfg: cfg, nodes: make(map[string]nodeRecord), sessions: make(map[string]session), failed: make(map[string]loginThrottle), now: time.Now}
+	c := &Controller{cfg: cfg, nodes: make(map[string]nodeRecord), sessions: make(map[string]session), failed: make(map[string]loginThrottle), now: time.Now}
+	if cfg.ArchitectEnabled {
+		options := hosting.DefaultConfig()
+		options.Now = func() time.Time { return c.now() }
+		hosts, err := hosting.NewService(options)
+		if err != nil {
+			panic("invalid built-in hosting policy")
+		}
+		c.hosts = hosts
+		client, err := catalog.NewClient(catalog.Config{UserAgent: "MetallicArchitect/0.2 (+https://github.com/oncoursemail/metallic-mc)"})
+		if err != nil {
+			panic("invalid built-in catalog configuration")
+		}
+		c.catalog = client
+	}
+	return c
 }
 func (c *Controller) Handler() http.Handler {
 	mux := http.NewServeMux()
 	assets, _ := fs.Sub(web, "web")
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(assets))))
+	architect := c.architectHandler()
+	for _, method := range []string{"GET", "POST", "DELETE"} {
+		mux.Handle(method+" /api/v1/architect/", architect)
+	}
+	mux.HandleFunc("GET /architect", c.architectPage)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		_, _ = io.WriteString(w, "ok\n")
@@ -173,7 +204,7 @@ func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
 	}
 	token := hex.EncodeToString(seed[:])
 	c.mu.Lock()
-	c.sessions[token] = session{expiry: now.Add(8 * time.Hour)}
+	c.sessions[token] = session{expiry: now.Add(8 * time.Hour), authenticatedAt: now}
 	c.mu.Unlock()
 	http.SetCookie(w, &http.Cookie{Name: "metallic_session", Value: token, Path: "/", HttpOnly: true, Secure: c.cfg.SecureCookies, SameSite: http.SameSiteStrictMode, Expires: now.Add(8 * time.Hour)})
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -209,6 +240,9 @@ func (c *Controller) logout(w http.ResponseWriter, r *http.Request) {
 		c.mu.Lock()
 		delete(c.sessions, cookie.Value)
 		c.mu.Unlock()
+		if c.discord != nil {
+			c.discord.CancelSession(cookie.Value)
+		}
 	}
 	http.SetCookie(w, &http.Cookie{Name: "metallic_session", Path: "/", Value: "", MaxAge: -1, HttpOnly: true, Secure: c.cfg.SecureCookies, SameSite: http.SameSiteStrictMode})
 	http.Redirect(w, r, "/login", http.StatusSeeOther)

@@ -49,7 +49,7 @@ func main() {
 	}
 	diskPath := getenv("METALLIC_AGENT_DISK_PATH", "/")
 	interval := 10 * time.Second
-	client := &http.Client{Timeout: 7 * time.Second}
+	client := newHeartbeatClient()
 	for {
 		ctx, cancel := context.WithTimeout(context.Background(), 6*time.Second)
 		hb, err := agent.Sample(ctx, nodeID, hostname, diskPath, services)
@@ -83,6 +83,16 @@ func main() {
 			log.Printf("heartbeat accepted: node=%s, services=%d", nodeID, len(services))
 		}
 		time.Sleep(interval)
+	}
+}
+func newHeartbeatClient() *http.Client {
+	return &http.Client{
+		Timeout: 7 * time.Second,
+		// URL validation covers the configured controller only. A redirect
+		// must not move its bearer token or host telemetry to another URL.
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
 }
 func getenv(k, d string) string {

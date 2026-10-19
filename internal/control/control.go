@@ -152,17 +152,20 @@ func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "too many login attempts", http.StatusTooManyRequests)
 		return
 	}
-	c.mu.Unlock()
+	// Keep the limit check, bounded credential comparisons and failure count
+	// in one critical section. Otherwise concurrent attempts reuse the same
+	// count and overwrite each other's increments. No I/O runs under this lock.
 	userOK := subtle.ConstantTimeCompare([]byte(r.Form.Get("username")), []byte(c.cfg.AdminUser)) == 1
 	passOK := subtle.ConstantTimeCompare([]byte(r.Form.Get("password")), []byte(c.cfg.AdminPassword)) == 1
 	if !userOK || !passOK {
-		c.mu.Lock()
 		t.attempts++
 		c.failed[ip] = t
 		c.mu.Unlock()
 		http.Redirect(w, r, "/login?error=1", http.StatusSeeOther)
 		return
 	}
+	delete(c.failed, ip)
+	c.mu.Unlock()
 	var seed [32]byte
 	if _, err := rand.Read(seed[:]); err != nil {
 		http.Error(w, "unavailable", http.StatusServiceUnavailable)
@@ -170,7 +173,6 @@ func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
 	}
 	token := hex.EncodeToString(seed[:])
 	c.mu.Lock()
-	delete(c.failed, ip)
 	c.sessions[token] = session{expiry: now.Add(8 * time.Hour)}
 	c.mu.Unlock()
 	http.SetCookie(w, &http.Cookie{Name: "metallic_session", Value: token, Path: "/", HttpOnly: true, Secure: c.cfg.SecureCookies, SameSite: http.SameSiteStrictMode, Expires: now.Add(8 * time.Hour)})

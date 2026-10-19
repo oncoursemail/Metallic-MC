@@ -21,9 +21,9 @@ TCPShield documents support for certain home-hosted servers but explicitly does 
 ## Metallic Control prototype
 
 - Defaults to `127.0.0.1:8080`; it is **not** a public HTTPS server.
-- User login requires a nontrivial admin password and is rate-limited (five wrong attempts per source address every five minutes, in memory).
+- User login requires a nontrivial admin password and is rate-limited (five wrong attempts per source address every five minutes, in memory). Concurrent failures share the same limit.
 - Session IDs are 256-bit random opaque tokens, held only in process memory and sent as HttpOnly + SameSite Strict cookies. Set `METALLIC_COOKIE_SECURE=true` at an HTTPS deployment.
-- Agents require a shared secret bearer token. Use HTTPS for traffic between machines. The agent refuses non-local HTTP by default.
+- Agents require a shared secret bearer token. Use HTTPS for traffic between machines. The agent refuses non-local HTTP by default and refuses every redirect, including same-host redirects. Configure the final controller endpoint directly so neither credentials nor telemetry move to an unvalidated URL.
 - Heartbeats use constrained JSON; 64 KiB maximum request bodies, validated node IDs and metric ranges.
 - No process creation, arbitrary shell commands, remote file writes, instance startup/shutdown, Docker socket mounting or privileged actions are exposed by the foundation API.
 - Secrets are not checked into Git. `.env.example` contains placeholders only. Do not turn example strings into real secrets.

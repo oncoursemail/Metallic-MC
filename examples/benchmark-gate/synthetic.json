@@ -1,0 +1,329 @@
+{
+  "schemaVersion": "metallic.benchmark-gate/v1",
+  "evidenceKind": "synthetic",
+  "declaredChanges": [
+    "engineArtifact"
+  ],
+  "baseline": {
+    "id": "synthetic-baseline",
+    "engine": {
+      "name": "SYNTHETIC baseline",
+      "version": "not-a-server-build",
+      "sha256": "8b71e64b5de8e5c5634007b3151264c9ec5d9521de8ca04953459a1c7d3e73bd"
+    },
+    "match": {
+      "hardwareSHA256": "4bde64e7b3e8a0665ce7c663ddce8d4bcfe8d303085f393df3cb7994a3488080",
+      "runtimeSHA256": "c493439a411950d456bc1c26c5a67ee8dc687a9c29f99880fd1f73c7a5aa4564",
+      "worldSHA256": "39a849e1da63123cd77e598263e38487771c15d6e888a6925f9af96d7131a772",
+      "workloadSHA256": "8254bdb6227ccfab431edb0a2b54c16e83377f6d023028760568a6de8f60e700",
+      "harnessSHA256": "f02d0a5bdd84ba6984c68b5f4a5b77f46dea07d43cd44e42d8f43704de6aeb20",
+      "configurationSHA256": "16da9caf3c22875e2c308ab6e658a215c4fa0ed7f46ddc9802d52b7c47c3ef8a",
+      "pluginsSHA256": "d72f94beded2e31e2710230e8d68f06d3361bea8f248981031c1048d8e3110d4",
+      "clientMatrixSHA256": "cbe6352d4be16c05bada9e3f1619aded719339531762f45ef78ddd4d5504c24b",
+      "gameplayContractSHA256": "834c63fb5bae900830aae2338ed24cc9eec1316fa19d0b41c9755322ae4f85c6",
+      "activePlayers": 20,
+      "clients": [
+        {
+          "edition": "java",
+          "version": "26.3",
+          "transport": "tcp",
+          "input": "keyboard-mouse",
+          "players": 10
+        },
+        {
+          "edition": "bedrock",
+          "version": "26.52",
+          "transport": "nethernet",
+          "input": "touch",
+          "players": 10
+        }
+      ]
+    },
+    "repetitions": [
+      {
+        "id": "synthetic-baseline-1",
+        "pairId": "pair-1",
+        "startedAt": "2026-10-18T00:00:00Z",
+        "warmupSeconds": 120,
+        "durationSeconds": 600,
+        "tickSamples": 12000,
+        "interactionSamples": 1200,
+        "metrics": {
+          "p99TickMs": 30,
+          "p99InteractionMs": 80,
+          "deadlineMissFraction": 0.001
+        },
+        "correctness": {
+          "inventoryConserved": true,
+          "economyConserved": true,
+          "persistencePassed": true,
+          "transfersPassed": true,
+          "pluginCompatibilityPassed": true
+        },
+        "traces": {
+          "ticks": {
+            "path": "synthetic-baseline-1-ticks.txt",
+            "sha256": "23e7c5119cfcf6eefac15065b487d397c9ef3ef9c2034ca3fced7d8a42d344f6",
+            "sizeBytes": 100,
+            "sampleCount": 12000
+          },
+          "interactions": {
+            "path": "synthetic-baseline-1-interactions.txt",
+            "sha256": "77fc0ef00512bce7bb1f2201c45604d6d90d9913c21c5eb0fd837adff47739a0",
+            "sizeBytes": 100,
+            "sampleCount": 1200
+          },
+          "correctness": {
+            "path": "synthetic-baseline-1-correctness.txt",
+            "sha256": "97bd229a8bceabea4fd65384ed0af0fa6b935a5b86823df66b3227ed1454ab52",
+            "sizeBytes": 100,
+            "sampleCount": 5
+          }
+        }
+      },
+      {
+        "id": "synthetic-baseline-2",
+        "pairId": "pair-2",
+        "startedAt": "2026-10-18T00:15:00Z",
+        "warmupSeconds": 120,
+        "durationSeconds": 600,
+        "tickSamples": 12000,
+        "interactionSamples": 1200,
+        "metrics": {
+          "p99TickMs": 30,
+          "p99InteractionMs": 80,
+          "deadlineMissFraction": 0.001
+        },
+        "correctness": {
+          "inventoryConserved": true,
+          "economyConserved": true,
+          "persistencePassed": true,
+          "transfersPassed": true,
+          "pluginCompatibilityPassed": true
+        },
+        "traces": {
+          "ticks": {
+            "path": "synthetic-baseline-2-ticks.txt",
+            "sha256": "b4d336b863093d0d17a5fa56794cc178a0963f0d3708f78b88716f3ae1b57adb",
+            "sizeBytes": 100,
+            "sampleCount": 12000
+          },
+          "interactions": {
+            "path": "synthetic-baseline-2-interactions.txt",
+            "sha256": "11fee4a0b0e380f59e6b89a92ad4bd77794d809fa1b773ec901d399d02c9870c",
+            "sizeBytes": 100,
+            "sampleCount": 1200
+          },
+          "correctness": {
+            "path": "synthetic-baseline-2-correctness.txt",
+            "sha256": "109b9c0eb86a20462a01d772c757d19c392018ca013a9f62bf87ddcfa5368e4a",
+            "sizeBytes": 100,
+            "sampleCount": 5
+          }
+        }
+      },
+      {
+        "id": "synthetic-baseline-3",
+        "pairId": "pair-3",
+        "startedAt": "2026-10-18T00:30:00Z",
+        "warmupSeconds": 120,
+        "durationSeconds": 600,
+        "tickSamples": 12000,
+        "interactionSamples": 1200,
+        "metrics": {
+          "p99TickMs": 30,
+          "p99InteractionMs": 80,
+          "deadlineMissFraction": 0.001
+        },
+        "correctness": {
+          "inventoryConserved": true,
+          "economyConserved": true,
+          "persistencePassed": true,
+          "transfersPassed": true,
+          "pluginCompatibilityPassed": true
+        },
+        "traces": {
+          "ticks": {
+            "path": "synthetic-baseline-3-ticks.txt",
+            "sha256": "1b0897335ef0b89b0c93d66399f07c809619546ec82680d83ee061c8cd718bf3",
+            "sizeBytes": 100,
+            "sampleCount": 12000
+          },
+          "interactions": {
+            "path": "synthetic-baseline-3-interactions.txt",
+            "sha256": "cf25bdbafbd9d5fc2311362e181b5accc39142857a4ef11438c89ffee8cd03d9",
+            "sizeBytes": 100,
+            "sampleCount": 1200
+          },
+          "correctness": {
+            "path": "synthetic-baseline-3-correctness.txt",
+            "sha256": "4d89f33163c867be0dadf72b6115e22f0185d6e6de0c5f6c711a7dcada266872",
+            "sizeBytes": 100,
+            "sampleCount": 5
+          }
+        }
+      }
+    ]
+  },
+  "candidate": {
+    "id": "synthetic-candidate",
+    "engine": {
+      "name": "SYNTHETIC candidate",
+      "version": "not-a-server-build",
+      "sha256": "0760ef1d5da53de6fcee6e28493d0f775bfcdca56714966e5fa6865e11b07f3d"
+    },
+    "match": {
+      "hardwareSHA256": "4bde64e7b3e8a0665ce7c663ddce8d4bcfe8d303085f393df3cb7994a3488080",
+      "runtimeSHA256": "c493439a411950d456bc1c26c5a67ee8dc687a9c29f99880fd1f73c7a5aa4564",
+      "worldSHA256": "39a849e1da63123cd77e598263e38487771c15d6e888a6925f9af96d7131a772",
+      "workloadSHA256": "8254bdb6227ccfab431edb0a2b54c16e83377f6d023028760568a6de8f60e700",
+      "harnessSHA256": "f02d0a5bdd84ba6984c68b5f4a5b77f46dea07d43cd44e42d8f43704de6aeb20",
+      "configurationSHA256": "16da9caf3c22875e2c308ab6e658a215c4fa0ed7f46ddc9802d52b7c47c3ef8a",
+      "pluginsSHA256": "d72f94beded2e31e2710230e8d68f06d3361bea8f248981031c1048d8e3110d4",
+      "clientMatrixSHA256": "cbe6352d4be16c05bada9e3f1619aded719339531762f45ef78ddd4d5504c24b",
+      "gameplayContractSHA256": "834c63fb5bae900830aae2338ed24cc9eec1316fa19d0b41c9755322ae4f85c6",
+      "activePlayers": 20,
+      "clients": [
+        {
+          "edition": "java",
+          "version": "26.3",
+          "transport": "tcp",
+          "input": "keyboard-mouse",
+          "players": 10
+        },
+        {
+          "edition": "bedrock",
+          "version": "26.52",
+          "transport": "nethernet",
+          "input": "touch",
+          "players": 10
+        }
+      ]
+    },
+    "repetitions": [
+      {
+        "id": "synthetic-candidate-1",
+        "pairId": "pair-1",
+        "startedAt": "2026-10-18T01:00:00Z",
+        "warmupSeconds": 120,
+        "durationSeconds": 600,
+        "tickSamples": 12000,
+        "interactionSamples": 1200,
+        "metrics": {
+          "p99TickMs": 29,
+          "p99InteractionMs": 79,
+          "deadlineMissFraction": 0.001
+        },
+        "correctness": {
+          "inventoryConserved": true,
+          "economyConserved": true,
+          "persistencePassed": true,
+          "transfersPassed": true,
+          "pluginCompatibilityPassed": true
+        },
+        "traces": {
+          "ticks": {
+            "path": "synthetic-candidate-1-ticks.txt",
+            "sha256": "2f073a4ead397650f78be251c7a20661b9ba0ec9374bfbcf918bd2429e4216c7",
+            "sizeBytes": 100,
+            "sampleCount": 12000
+          },
+          "interactions": {
+            "path": "synthetic-candidate-1-interactions.txt",
+            "sha256": "bd8e951907915944eed4a634ab678aab76e9ce5f8a2bceeb6a6bd158f2ee9714",
+            "sizeBytes": 100,
+            "sampleCount": 1200
+          },
+          "correctness": {
+            "path": "synthetic-candidate-1-correctness.txt",
+            "sha256": "5118d3191e32b09b10e38b5edf71664c84f405e8a7e8eb5e9daba1ce6897be2f",
+            "sizeBytes": 100,
+            "sampleCount": 5
+          }
+        }
+      },
+      {
+        "id": "synthetic-candidate-2",
+        "pairId": "pair-2",
+        "startedAt": "2026-10-18T01:15:00Z",
+        "warmupSeconds": 120,
+        "durationSeconds": 600,
+        "tickSamples": 12000,
+        "interactionSamples": 1200,
+        "metrics": {
+          "p99TickMs": 29,
+          "p99InteractionMs": 79,
+          "deadlineMissFraction": 0.001
+        },
+        "correctness": {
+          "inventoryConserved": true,
+          "economyConserved": true,
+          "persistencePassed": true,
+          "transfersPassed": true,
+          "pluginCompatibilityPassed": true
+        },
+        "traces": {
+          "ticks": {
+            "path": "synthetic-candidate-2-ticks.txt",
+            "sha256": "5b18d16b7eeadb329fc4a44ef5699dd754f39b03a9c9a6dbaf09ae8114cf2864",
+            "sizeBytes": 100,
+            "sampleCount": 12000
+          },
+          "interactions": {
+            "path": "synthetic-candidate-2-interactions.txt",
+            "sha256": "abb11cbe6d03b4f85da460d185521f654c9819df990f77eae8467e6a5612c508",
+            "sizeBytes": 100,
+            "sampleCount": 1200
+          },
+          "correctness": {
+            "path": "synthetic-candidate-2-correctness.txt",
+            "sha256": "a472ad08d36efbb63ff72697dfbaa5878c69dd89f21f38e143a9efdd7a9ea803",
+            "sizeBytes": 100,
+            "sampleCount": 5
+          }
+        }
+      },
+      {
+        "id": "synthetic-candidate-3",
+        "pairId": "pair-3",
+        "startedAt": "2026-10-18T01:30:00Z",
+        "warmupSeconds": 120,
+        "durationSeconds": 600,
+        "tickSamples": 12000,
+        "interactionSamples": 1200,
+        "metrics": {
+          "p99TickMs": 29,
+          "p99InteractionMs": 79,
+          "deadlineMissFraction": 0.001
+        },
+        "correctness": {
+          "inventoryConserved": true,
+          "economyConserved": true,
+          "persistencePassed": true,
+          "transfersPassed": true,
+          "pluginCompatibilityPassed": true
+        },
+        "traces": {
+          "ticks": {
+            "path": "synthetic-candidate-3-ticks.txt",
+            "sha256": "89ed81958988bf694ed9afb484b0f2a33105d168066d5cea6369f2e73167f7e0",
+            "sizeBytes": 100,
+            "sampleCount": 12000
+          },
+          "interactions": {
+            "path": "synthetic-candidate-3-interactions.txt",
+            "sha256": "34e901e903d82f93d70e63f3e312c39943444ab4eda4a5481dbecdbb95931bfe",
+            "sizeBytes": 100,
+            "sampleCount": 1200
+          },
+          "correctness": {
+            "path": "synthetic-candidate-3-correctness.txt",
+            "sha256": "1a321325b2bef20ff50b185d91e5c2927275e4c653419f49d0721c658f0ed354",
+            "sizeBytes": 100,
+            "sampleCount": 5
+          }
+        }
+      }
+    ]
+  }
+}

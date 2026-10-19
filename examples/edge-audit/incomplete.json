@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "serviceId": "metallic-bedrock-unverified",
+  "audience": "community",
+  "transport": "nethernet",
+  "origin": {
+    "address": "",
+    "port": 25565
+  },
+  "gamePort": 19132,
+  "webrtcPort": 0,
+  "exposedTcpPorts": [19132],
+  "exposedUdpPorts": [19132],
+  "advertisedGameplay": [],
+  "edge": {
+    "provider": "",
+    "plan": "",
+    "protectedAddresses": [],
+    "coveredTransports": [],
+    "communityHostingPermitted": null,
+    "providerEvidenceId": "",
+    "assignmentEvidenceId": ""
+  },
+  "boundaries": {
+    "directOriginReachable": null,
+    "ipv6Reviewed": null,
+    "publicAdministration": null,
+    "resourcePackLeaksOrigin": null,
+    "auxiliaryServicesLeakOrigin": null,
+    "tenantEgressControlled": null,
+    "authenticatedForwarding": null,
+    "firewallRestrictsPeers": null,
+    "signalingProtected": null,
+    "automaticOriginDiscovery": null,
+    "exposureEvidenceId": ""
+  },
+  "evidence": []
+}

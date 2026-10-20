@@ -44,20 +44,22 @@ func FindProfile(id string) (Profile, bool) {
 }
 
 type Host struct {
-	ID                string  `json:"id"`
-	Online            bool    `json:"online"`
-	CPUThreads        uint32  `json:"cpuThreads"`
-	CPUPercent        float64 `json:"cpuPercent"`
-	Load1             float64 `json:"load1"`
-	CPUPressureSome10 float64 `json:"cpuPressureSome10"`
-	MemPressureSome10 float64 `json:"memPressureSome10"`
-	PressureAvailable bool    `json:"pressureAvailable"`
-	MemoryTotal       uint64  `json:"memoryTotal"`
-	MemoryUsed        uint64  `json:"memoryUsed"`
-	DiskTotal         uint64  `json:"diskTotal"`
-	DiskUsed          uint64  `json:"diskUsed"`
-	SwapTotal         uint64  `json:"swapTotal"`
-	SwapUsed          uint64  `json:"swapUsed"`
+	ID                  string  `json:"id"`
+	Online              bool    `json:"online"`
+	CPUThreads          uint32  `json:"cpuThreads"`
+	CPUPercent          float64 `json:"cpuPercent"`
+	Load1               float64 `json:"load1"`
+	CPUPressureSome10   float64 `json:"cpuPressureSome10"`
+	MemPressureSome10   float64 `json:"memPressureSome10"`
+	IOPressureSome10    float64 `json:"ioPressureSome10"`
+	IOPressureAvailable bool    `json:"ioPressureAvailable"`
+	PressureAvailable   bool    `json:"pressureAvailable"`
+	MemoryTotal         uint64  `json:"memoryTotal"`
+	MemoryUsed          uint64  `json:"memoryUsed"`
+	DiskTotal           uint64  `json:"diskTotal"`
+	DiskUsed            uint64  `json:"diskUsed"`
+	SwapTotal           uint64  `json:"swapTotal"`
+	SwapUsed            uint64  `json:"swapUsed"`
 }
 
 type Candidate struct {
@@ -128,6 +130,14 @@ func assess(n Host, p Profile) Candidate {
 		}
 		if n.MemPressureSome10 > 2 {
 			r.Reasons = append(r.Reasons, "Memory pressure is elevated")
+		}
+		// Linux PSI measures time spent stalled rather than utilization.
+		// A reported I/O bottleneck is relevant even with free CPU and RAM.
+		if n.IOPressureAvailable && (!validPercent(n.IOPressureSome10) || n.IOPressureSome10 > 5) {
+			r.Reasons = append(r.Reasons, "I/O pressure is elevated or invalid")
+		}
+		if p.Class == "batch" && !n.IOPressureAvailable {
+			r.Reasons = append(r.Reasons, "I/O pressure unknown; defer background learning")
 		}
 		// Reserve at least one complete logical core for OS and unscheduled work.
 		spare := float64(n.CPUThreads) * (cpuCeiling - n.CPUPercent) * 10

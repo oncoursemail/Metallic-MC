@@ -1,0 +1,47 @@
+# Managed by Metallic-MC systemd bundle schema 1
+[Unit]
+Description=Metallic-MC private control
+After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=metallic-control
+Group=metallic-control
+EnvironmentFile=/etc/metallic-mc/controller.env
+ExecStart=/opt/metallic-mc/current/metallic-control
+WorkingDirectory=/var/lib/metallic-mc/controller
+Restart=on-failure
+RestartSec=15s
+TimeoutStopSec=30s
+KillSignal=SIGTERM
+KillMode=control-group
+UMask=0077
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ReadWritePaths=/var/lib/metallic-mc/controller
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryHigh=192M
+MemoryMax=256M
+MemorySwapMax=0
+CPUQuota=50%
+TasksMax=64
+LimitNOFILE=4096
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=metallic-mc-control
+
+[Install]
+WantedBy=multi-user.target

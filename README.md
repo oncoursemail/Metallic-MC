@@ -6,7 +6,7 @@
 
 Metallic-MC is being designed as a complete game network with a dedicated public edge, custom game services, a cluster control plane, observability, and an eventual hosting platform. It is intended to scale horizontally across hardware owned by Metallic.
 
-> **Current stage: foundation prototype, not production deployment.** The repository includes a real read-only dashboard, a conservative resource-placement preview, an opt-in scoped Star AI status API, and a Linux metrics agent. It does **not** yet launch Minecraft instances, host games, implement DDoS protection, provide secure multi-tenancy, store telemetry persistently, or contain a custom Minecraft engine. A successful `go test` is not a game-server load benchmark.
+> **Current stage: private pilot tooling and control foundation.** The repository includes a real read-only dashboard, a conservative resource-placement preview, an opt-in scoped Star AI status API, a Linux metrics agent, optional persistent hosting policy, and a guarded local Minecraft pilot runner. A live Java/Bedrock login, public DDoS-protected edge, secure multi-tenancy, persistent telemetry and a custom Minecraft engine remain unverified or unimplemented. A successful `go test` is not a game-server load benchmark.
 
 ## Verified technical direction (October 2026)
 
@@ -27,6 +27,19 @@ Metallic-MC is being designed as a complete game network with a dedicated public
 6. Expanded Linux agent telemetry: logical CPU threads, PSI CPU and memory pressure, swap used/total, in addition to existing metrics.
 7. No fake sample player counts, no command-execution endpoint, no preloaded dummy servers, and no privileged remote agent operations.
 8. Tests with Go's race detector, a CI workflow, architecture, threat model, load-test criteria, and deployment notes.
+
+## Metallic Architect: optional private workbench
+
+Set `METALLIC_ARCHITECT_ENABLED=true` and open `/architect` after signing in to try the new private workbench.
+
+- Discord identity linking with PKCE, browser/session binding, short-lived flows, replay rejection, unlinking, and identity-only metadata persistence. Requires your own configured Discord application.
+- Single-use host pairing, unique scoped credentials, revocation, bounded allocation records, and loopback route authorization plans. These are policy operations; they do not start Minecraft or create tunnels.
+- Read-only Hangar and Modrinth search and exact-version inspection with integrity/compatibility checks and explicit dependency blockers.
+- A restrained purple/silver interface for accounts, hardware and plugin inspection, with no fabricated downloads, public addresses or player statistics.
+
+The workbench is disabled by default and uses the existing private administrator. Host state defaults to memory, with an optional private durable Linux store. A protected edge, native installer, isolated host executor, multi-user identity and public directory are later implementation gates.
+
+See the [workbench setup and API](docs/architect-workbench.md), [platform design and primary-source research](docs/architect-platform.md), [host policy contract](docs/hosting-agent-contract.md), and [plugin catalog contract](docs/plugin-catalog.md).
 
 ## Run the local development prototype
 
@@ -49,13 +62,13 @@ go run ./cmd/metallic-agent
 
 Open **http://127.0.0.1:8080** and sign in with `admin` and the `METALLIC_ADMIN_PASSWORD` from terminal 1. These example service probes will read **unreachable** until Minecraft ports actually listen; that is expected. If you don't want service probes yet, leave `METALLIC_SERVICES` empty.
 
-Keep the control plane on `127.0.0.1` initially. For remote access, put it behind an authenticated HTTPS reverse proxy or a VPN; set `METALLIC_COOKIE_SECURE=true` and ensure transport end to end is trusted. Do not publish port 8080 to the internet. Agents on different nodes must use an HTTPS endpoint and an agent credential. Current foundation uses a shared agent token; per-node short-lived credentials and mTLS are production milestones.
+Keep the control plane on `127.0.0.1` initially. For remote access, put it behind an authenticated HTTPS reverse proxy or a VPN; set `METALLIC_COOKIE_SECURE=true` and ensure transport end to end is trusted. Do not publish port 8080 to the internet. Agents on different nodes must use an HTTPS endpoint and an agent credential. The read-only telemetry agent still uses a shared token. Architect host pairing uses separate per-host credentials for policy calls; authenticated live tunnels and mTLS remain deployment milestones.
 
 The resource planner is a **read-only what-if tool**; it does not book capacity or restrict existing Star AI processes. Real cgroup enforcement, safe persistent reservations and automatic game booting are **not yet implemented**.
 
 To give Star AI a separate read-only view, optionally generate `METALLIC_STARAI_READ_TOKEN` (minimum 24 characters; different from the agent token), keep it in a secret store, and send it with `GET /api/v1/ai/context` on a protected private HTTPS connection. It never grants command execution. See [Star AI integration](docs/star-ai-integration.md).
 
-Current limitations: no persisted sessions, nodes, metrics, auditing or RBAC; admin access is a single account; agent/service probes are TCP reachability only; Linux-only agent. See [Security](docs/security.md) before enabling remote connections.
+Current limitations: no persisted sessions, nodes, metrics, audit log or RBAC; admin access is a single account; agent/service probes are TCP reachability only; Linux-only agent. See [Security](docs/security.md) before enabling remote connections.
 
 ```bash
 go test -race ./...
@@ -63,6 +76,18 @@ go vet ./...
 go build ./cmd/metallic-control
 go build ./cmd/metallic-agent
 ```
+
+## Private pilot and restart recovery
+
+The repository now includes an executable [private Java/Bedrock pilot](docs/private-pilot.md): four pinned upstream artifacts, generated loopback-only proxy/backend configurations, authenticated modern forwarding, an owner-managed whitelist, resource/port admission checks, and supervised graceful shutdown. It prepares a hub and a separate game world. The tool does not accept Minecraft terms, choose a public ingress provider, or establish a completed Java/Bedrock login test.
+
+Architect can optionally keep its host registry in a [private durable Linux store](docs/hosting-persistence.md). Set `METALLIC_HOSTING_STORE_PATH` only with Architect enabled. Host registrations, credential digests, revocations and allocation plans survive controller restart. Pending pairing tickets, administrator sessions and live telemetry remain ephemeral; nodes need fresh authenticated heartbeats. Unavailable or corrupt state stops startup instead of resetting permissions.
+
+The [service recovery bundle](docs/service-recovery.md) prepares checksum-verified controller and telemetry binaries for dedicated Linux service accounts, private configuration, bounded restart and resource limits, graceful shutdown, and explicit rollback. Installation and enabling are separate steps. It manages only its own two services and never changes Wings or Old Servers. The pilot also supports compact backups while fully stopped and verified restoration into a new directory.
+
+The integrated backend also observes Linux I/O pressure and uses it in placement previews. Background learning is deferred when I/O pressure is unknown. Legacy Wings observation reads process names only. The moderation package provides tested authorization decisions; it does not execute live sanctions or server operations.
+
+These capabilities are development/staging code. See the dated [integration and validation record](docs/completion-2026-10-20.md) for what was actually run and the remaining public-launch gates.
 
 ## Repository layout
 

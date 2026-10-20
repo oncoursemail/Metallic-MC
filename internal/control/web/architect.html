@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#121016"><title>Metallic-MC — Architect</title>
+  <link rel="stylesheet" href="/assets/architect.css"><script defer src="/assets/architect.js"></script>
+</head>
+<body>
+  <div class="workbench">
+    <aside class="rail">
+      <a class="brand" href="/"><span class="monogram" aria-hidden="true">M</span><span>METALLIC-MC<small>ARCHITECT</small></span></a>
+      <span class="rail-label">WORKSPACE</span>
+      <nav aria-label="Architect navigation">
+        <a class="active" href="#overview">Overview <span>01</span></a>
+        <a href="#accounts">Account links <span>02</span></a>
+        <a href="#hosting">Your hardware <span>03</span></a>
+        <a href="#plugins">Plugin catalog <span>04</span></a>
+      </nav>
+      <div class="rail-bottom"><div class="rail-environment"><span class="status-light"></span> PRIVATE FOUNDATION<p>Administrator workspace</p><a href="/">Open infrastructure control ↗</a></div><form action="/logout" method="post"><button class="quiet" type="submit">Sign out</button></form></div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar"><span>METALLIC-MC <b>/</b> ARCHITECT</span><a href="/">Infrastructure ↗</a></header>
+      <main id="overview">
+        <section class="intro">
+          <div><p class="eyebrow">THE METALLIC PLATFORM</p><h1>Your worlds.<br><em>Your hardware.</em></h1><p class="lede">One place to connect your identity, prepare a server, and find the plugins that make it yours.</p></div>
+          <div class="release-note"><span class="number">0.2</span><span class="eyebrow">FOUNDATION WORKBENCH</span><p>Account linking and hosting plans. Server execution and public connections are still in development.</p></div>
+        </section>
+        <div class="status-strip"><span><i class="dot" id="controller-dot"></i><strong id="controller-state">Connecting to controller</strong></span><span>Paper-first compatibility</span><span>Optional components</span><span>Private access</span></div>
+        <p id="notice" class="notice" role="status" aria-live="polite" hidden></p>
+
+        <section class="section" id="accounts">
+          <div class="section-heading"><div><span class="eyebrow">01 / IDENTITY</span><h2>Connected accounts</h2></div><p>You choose what to connect.</p></div>
+          <div class="account-grid">
+            <article class="account-card"><div class="card-top"><span class="service-mark">D</span><span class="tag" id="discord-badge">Checking</span></div><h3>Discord</h3><p id="discord-description">Checking account linking availability.</p><div class="account-detail" id="discord-detail"></div><div class="actions"><button id="discord-connect" type="button" disabled>Link Discord ↗</button><button id="discord-unlink" class="secondary" type="button" hidden>Unlink account</button></div></article>
+            <article class="account-card"><div class="card-top"><span class="service-mark silver">M</span><span class="tag">Planned</span></div><h3>Minecraft</h3><p>Use your own Microsoft account and a valid Minecraft entitlement through the launcher.</p><div class="account-detail">Minecraft sign-in is separate from Discord linking.</div><div class="card-foot">Launcher authentication is not configured in this controller.</div></article>
+          </div>
+        </section>
+
+        <section class="section" id="hosting">
+          <div class="section-heading"><div><span class="eyebrow">02 / HOSTING</span><h2>Bring your own hardware</h2></div><span class="tag">Policy preview</span></div>
+          <div class="hosting-grid">
+            <article class="panel">
+              <div class="panel-head"><h3>Pair a host</h3><span class="step">01</span></div>
+              <p>Create a single-use pairing ticket for the host you control. It expires in five minutes.</p>
+              <button id="pair-host" type="button" disabled>Create pairing ticket</button>
+              <div id="pairing-result" class="secret-panel" hidden><label for="pairing-ticket">PAIRING TICKET · SHOWN ONCE</label><textarea id="pairing-ticket" readonly rows="2" spellcheck="false" aria-describedby="pairing-expiry"></textarea><p id="pairing-expiry"></p><button id="copy-ticket" type="button" class="secondary">Copy ticket</button><button id="hide-ticket" type="button" class="quiet">Hide</button></div>
+              <p class="small">The host protocol can redeem tickets through the API. An installable host service and outbound relay are not available yet.</p>
+            </article>
+            <article class="panel">
+              <div class="panel-head"><h3>Reserve a server budget</h3><span class="step">02</span></div>
+              <form id="allocation-form">
+                <label for="allocation-host">Paired host</label><select id="allocation-host" required><option value="">Pair a host first</option></select>
+                <label for="server-name">Server ID</label><input id="server-name" required minlength="1" maxlength="64" pattern="[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}" value="my-minecraft" autocomplete="off">
+                <div class="field-grid"><div><label for="server-cpu">CPU cores</label><input id="server-cpu" type="number" min="1" max="16" step="1" value="2" required></div><div><label for="server-memory">Memory (MiB)</label><input id="server-memory" type="number" min="512" max="32768" step="256" value="2048" required></div><div><label for="server-disk">Disk (GiB)</label><input id="server-disk" type="number" min="1" max="512" step="1" value="10" required></div></div>
+                <div class="field-grid"><div><label for="server-port">Game port</label><input id="server-port" type="number" min="25565" max="25574" value="25565" required></div><div><label for="server-slots">Player slots</label><input id="server-slots" type="number" min="1" max="200" value="20" required></div></div>
+                <button id="allocate-server" type="submit" disabled>Save allocation plan</button>
+              </form><p class="small">A plan records limits. It does not reserve physical hardware, start Minecraft, or create a public address.</p>
+            </article>
+          </div>
+          <div class="inventory panel"><div class="panel-head"><h3>Your hosts and servers</h3><button id="refresh-hosts" type="button" class="quiet">Refresh ↻</button></div><div id="host-list" class="list"><p class="empty">Loading paired hosts.</p></div><div id="server-list" class="list"></div><p id="host-persistence" class="small" role="status">Checking host storage.</p></div>
+        </section>
+
+        <section class="section" id="plugins">
+          <div class="section-heading"><div><span class="eyebrow">03 / PLUGINS</span><h2>Find your next capability</h2></div><p>Version checks before an installation plan.</p></div>
+          <section class="catalog panel">
+            <form id="catalog-form" class="catalog-search">
+              <div><label for="catalog-provider">Catalog</label><select id="catalog-provider"><option value="hangar">Paper Hangar</option><option value="modrinth">Modrinth</option></select></div>
+              <div class="search-field"><label for="catalog-query">Plugin name</label><input id="catalog-query" placeholder="Search plugins…" maxlength="100" required></div>
+              <div><label for="minecraft-version">Minecraft version</label><input id="minecraft-version" value="1.21.11" maxlength="32" required></div>
+              <button id="catalog-search" type="submit">Search catalogs</button>
+            </form>
+            <div id="catalog-results" class="catalog-results"><p class="empty">Search Hangar or Modrinth to inspect an exact release and its compatibility.</p></div>
+            <div id="plugin-plan" class="plan-panel" hidden></div>
+          </section>
+          <p class="small section-note">Catalog checks do not execute plugins. Required dependencies, download integrity, and compatibility must all pass before a future installer can proceed. Plugins will still require an isolated server process.</p>
+        </section>
+        <section class="directory-note"><div><span class="eyebrow">NEXT / DISCOVERY</span><h2>A place for every server.</h2><p>The launcher and an in-game server menu will share a verified directory. Servers appear after a protected route and health checks are working.</p></div><div class="directory-state"><span class="tag">Not connected</span><strong>Public network</strong><p>No public relay or joinable address has been provisioned by this workbench.</p></div></section>
+      </main>
+      <footer><span>METALLIC-MC ARCHITECT</span><span>PRIVATE FOUNDATION · 2026</span></footer>
+    </div>
+  </div>
+</body>
+</html>

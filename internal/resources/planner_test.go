@@ -114,3 +114,23 @@ func TestDeterministicBestNode(t *testing.T) {
 		t.Fatalf("unexpected %+v", r)
 	}
 }
+
+func TestIOPressureBlocksStorageWorkloads(t *testing.T) {
+	host := Host{ID: "test", Online: true, CPUThreads: 16, CPUPercent: 10, Load1: 1, PressureAvailable: true, MemoryTotal: 64 * GiB, MemoryUsed: 8 * GiB, DiskTotal: 256 * GiB, DiskUsed: 16 * GiB, IOPressureAvailable: true, IOPressureSome10: 12}
+	profile, _ := FindProfile("mc-lobby")
+	x := Compute([]Host{host}, profile)
+	if x.Candidates[0].Admitted {
+		t.Fatal("high I/O pressure should block")
+	}
+	host.IOPressureSome10 = 0.25
+	x = Compute([]Host{host}, profile)
+	if !x.Candidates[0].Admitted {
+		t.Fatalf("unexpected block: %v", x.Candidates[0].Reasons)
+	}
+	host.IOPressureAvailable = false
+	batch, _ := FindProfile("star-learning")
+	x = Compute([]Host{host}, batch)
+	if x.Candidates[0].Admitted {
+		t.Fatal("unknown I/O pressure should defer background work")
+	}
+}

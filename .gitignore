@@ -8,3 +8,7 @@
 /build/
 /dist/
 /tmp/
+
+# Local Python checks and runtime output; never commit generated secrets/worlds.
+__pycache__/
+*.pyc

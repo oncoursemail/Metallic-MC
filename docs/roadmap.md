@@ -4,7 +4,7 @@ Each milestone has acceptance criteria. Feature ideas are grouped by dependency 
 
 ## M0 — Control foundation [PROTOTYPE IMPLEMENTED]
 
-Read-only admin dashboard, authenticated Linux agent, CPU/RAM/disk/load, static service health probes, tests, threat model and initial network architecture. Data is only in memory and should not be used for capacity-based server scheduling or billing.
+Read-only admin dashboard, authenticated Linux agent, CPU/RAM/disk/load, static service health probes, tests, threat model and initial network architecture. Live telemetry is ephemeral and must not be used as a durable reservation or billing record. Architect host policy has separately opt-in persistence.
 
 **Done means:** local controller starts, agent heartbeat is authenticated, the dashboard displays real node telemetry, unauthorized API calls fail, and Go unit/race checks pass.
 
@@ -15,7 +15,7 @@ Read-only admin dashboard, authenticated Linux agent, CPU/RAM/disk/load, static 
 - The existing Wings service and heavy Star AI model processes on the connected machines were observed only; no host changes were made.
 - Source: [shared-platform.md](shared-platform.md), [hardware-snapshot.md](hardware-snapshot.md), [star-ai-integration.md](star-ai-integration.md).
 
-## M1 — Playable private Java + Bedrock network [NOT STARTED]
+## M1 — Playable private Java + Bedrock network [PILOT TOOLING IMPLEMENTED; GAMEPLAY VALIDATION PENDING]
 
 - Operate Velocity gateway on a private/internal interface behind an approved protective edge.
 - Install Geyser-Velocity and Floodgate; verify present Bedrock TCP/UDP transports and auth.
@@ -25,7 +25,7 @@ Read-only admin dashboard, authenticated Linux agent, CPU/RAM/disk/load, static 
 
 **Done means:** Java and Bedrock can authenticate, play and move through at least two protected backends with no direct backend access; restore a world backup.
 
-## M2 — Real cluster operations [NOT STARTED]
+## M2 — Real cluster operations [PRIVATE HOST POLICY AND RECOVERY IMPLEMENTED; ORCHESTRATION PENDING]
 
 - PostgreSQL identity and audit store; short-TTL cache and pub/sub as needed.
 - Per-node credential enrollment, signed releases, authenticated agent commands with least privileges, history and an audited job queue.

@@ -2,6 +2,11 @@
 
 Status: **proposed**, October 18, 2026. A topology blueprint is not proof of deployment.
 
+**October 20 update:** the owner's custom Gateway/Authority/Presence direction is
+specified in [custom-network/architecture.md](custom-network/architecture.md).
+That document supersedes this ADR's assumption that Velocity is the final front
+door. This page retains the earlier comparison topology and compatibility goals.
+
 ## Design goals
 
 A Java-first, Bedrock-accessible, privately operated fleet of game servers, with the control plane wholly owned by Metallic. Begin with a single local Linux machine, expand to multiple physical nodes, then protected edge locations if traffic justifies it. Keep game data safe, isolate crashes and exploits, and make adding a machine operationally predictable.
@@ -39,7 +44,7 @@ There are **two planes**:
 | Component | First network pilot | Scale phase | Principle |
 |---|---|---|---|
 | Protected edge | External mitigation provider | Multiple ingress locations | Do not put home/router IP in public game DNS |
-| Java proxy | Velocity | Multiple stateless Velocity proxies | Modern forwarding + firewall and private network |
+| Java proxy | Velocity comparison baseline | Multiple connection-owning gateway cells | Modern forwarding + firewall/private network; established sockets remain stateful |
 | Bedrock bridge | Geyser/Floodgate on ingress proxy | Multiple supported Bedrock ingress points | Verify both TCP and UDP NetherNet transport |
 | Lobby | Paper with MetallicCore | Several lobby instances | Prefer lightweight/simplified gameplay |
 | Competitive matches | Paper initially; Minestom where viable | Many short-lived dedicated match instances | Never share match execution across unsafe threads |
@@ -77,7 +82,12 @@ Player ID keys must distinguish authenticated Java profiles and Bedrock/Floodgat
 
 ## Infrastructure options
 
-Phase 1 uses Linux bare-metal nodes, services under systemd or isolated containers, and a local private subnet. Phase 2 can evaluate Nomad/Consul or a carefully configured Kubernetes deployment, but both add significant complexity and are not prerequisites for a small local network. Avoid designing a public hosting control plane until resource isolation, egress restrictions, abuse response and billing risks are addressed.
+Phase 1 uses Linux nodes with a dedicated Metallic-MC project container boundary
+separate from Metallic's other project and a private subnet. Bare-host service
+accounts alone do not satisfy that owner requirement. Old Servers/Wings on Brain 2
+remain untouched. Phase 2 can evaluate Nomad/Consul or Kubernetes when justified;
+neither is a prerequisite for the first private network. Public hosting still
+requires its separate isolation and operating gates.
 
 ## Next architectural decisions
 

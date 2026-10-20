@@ -56,6 +56,25 @@ class PilotTests(unittest.TestCase):
             java.assert_not_called()
             spawn.assert_not_called()
 
+    def test_accepted_eula_does_not_launch_known_unplayable_loopback_nethernet(self):
+        for role in ("hub", "game"):
+            (self.root / role / "eula.txt").write_text("eula=true\n")  # disposable fixture only
+        with mock.patch.object(pilot, "java_executable") as java, mock.patch.object(pilot.subprocess, "Popen") as spawn:
+            with self.assertRaisesRegex(pilot.PilotError, "NetherNet.*loopback"):
+                pilot.run(self.root, self.profile, self.lock, "java")
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(pilot.main(["preflight", "--root", str(self.root)]), 2)
+            java.assert_not_called()
+            spawn.assert_not_called()
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(pilot.main(["validate", "--root", str(self.root)]), 0)
+        result = json.loads(out.getvalue())
+        self.assertEqual(result["config"], "valid")
+        self.assertEqual(result["eula"], "accepted by owner")
+        self.assertFalse(result["launch_ready"])
+        self.assertTrue(result["launch_blockers"])
+
     def test_all_forwarding_and_exposure_changes_fail_closed_without_secret(self):
         cases = [
             ("proxy/velocity.toml", 'bind = "127.0.0.1:', 'bind = "0.0.0.0:'),
@@ -207,7 +226,7 @@ class PilotTests(unittest.TestCase):
                 raise OSError("fixture not ready")
             return {"online": 0, "protocol": 0}
 
-        with mock.patch.object(pilot, "verify_all"), mock.patch.object(pilot.os, "geteuid", return_value=1000), mock.patch.object(pilot, "java_executable", return_value=sys.executable), \
+        with mock.patch.object(pilot, "require_transport_launchable"), mock.patch.object(pilot, "verify_all"), mock.patch.object(pilot.os, "geteuid", return_value=1000), mock.patch.object(pilot, "java_executable", return_value=sys.executable), \
              mock.patch.object(pilot, "check_headroom"), mock.patch.object(pilot, "java_status", side_effect=status), \
              mock.patch.object(pilot.subprocess, "Popen", side_effect=spawn), contextlib.redirect_stdout(io.StringIO()):
             with self.assertRaisesRegex(pilot.PilotError, "JVM exited"):

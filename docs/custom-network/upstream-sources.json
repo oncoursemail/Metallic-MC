@@ -1,0 +1,290 @@
+[
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/connection/MinecraftConnection.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/connection/MinecraftConnection.java",
+    "sha256": "9489f4c8e4daba3e5fed95ed3769af2359aa26ffc75cf974fde6a0eec4c21f9a",
+    "bytes": 23693
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/connection/client/AuthSessionHandler.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/connection/client/AuthSessionHandler.java",
+    "sha256": "5d38c552a6b097f76d439a5f402aa6c5e866a8139f50ecc3cb5e62fedb1f706e",
+    "bytes": 12895
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/connection/client/InitialLoginSessionHandler.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/connection/client/InitialLoginSessionHandler.java",
+    "sha256": "a8310c858231289f6b79483ce0ab01e13bf86568df92a83ff728bc0fbccfda3d",
+    "bytes": 13068
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/connection/client/ClientPlaySessionHandler.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/connection/client/ClientPlaySessionHandler.java",
+    "sha256": "e5fb31be4649bb06757162b084b820fe752bbf22c53fb6d6534fc63009c9f6e7",
+    "bytes": 38538
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/connection/backend/BackendPlaySessionHandler.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/connection/backend/BackendPlaySessionHandler.java",
+    "sha256": "0cb9469f277c7d6ace51e57a5e6e7899dc77c5827819966182059ea3e90bbc06",
+    "bytes": 22080
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/connection/backend/LoginSessionHandler.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/connection/backend/LoginSessionHandler.java",
+    "sha256": "43dbb147c8c49fd5eb8e426079b72ec2795bf640f5b3e5b779b20bfc8e92c858",
+    "bytes": 9779
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/connection/client/ConnectedPlayer.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/connection/client/ConnectedPlayer.java",
+    "sha256": "d1527522d515b4eff11bcb551bd4b8ffd0d4999644955550b510fa3e4a29b84c",
+    "bytes": 59862
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/protocol/netty/MinecraftCompressDecoder.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/protocol/netty/MinecraftCompressDecoder.java",
+    "sha256": "fd61932e236e7fb173ecec97c10314bd83c932e6e2584a7de307cc6004256756",
+    "bytes": 5831
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/protocol/netty/MinecraftVarintFrameDecoder.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/protocol/netty/MinecraftVarintFrameDecoder.java",
+    "sha256": "bf4f3688f4b046fef6605fcc1b9983cde7de5600e96997d26e76139d736e7727",
+    "bytes": 11533
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/protocol/netty/PlayPacketQueueOutboundHandler.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/protocol/netty/PlayPacketQueueOutboundHandler.java",
+    "sha256": "ea75432d0d815052e1747668a483d186171592d5088a773c298417e17b333977",
+    "bytes": 3565
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "native/README.md",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/native/README.md",
+    "sha256": "cec91c0e16883b6c98dc0f80251b16ac3b8bd588937d137d21b97da409b233d6",
+    "bytes": 2385
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "api/LICENSE",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/api/LICENSE",
+    "sha256": "971d2c241c0f135af359e9e15bf6811c06ddf3c2d5e3a089ca9d57fa78143887",
+    "bytes": 1060
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "LICENSE",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/LICENSE",
+    "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "bytes": 35149
+  },
+  {
+    "repo": "minekube/gate",
+    "path": ".web/docs/guide/lite.md",
+    "sha": "8dc77eacd4b0458b8805f652d8081a5e9d301c77",
+    "url": "https://github.com/minekube/gate/blob/8dc77eacd4b0458b8805f652d8081a5e9d301c77/.web/docs/guide/lite.md",
+    "sha256": "68e44addb8f57ae5c55cb2088bdf668a5677b240f70c27de254f13da3f5df3ba",
+    "bytes": 11810
+  },
+  {
+    "repo": "minekube/gate",
+    "path": ".web/docs/guide/security/index.md",
+    "sha": "8dc77eacd4b0458b8805f652d8081a5e9d301c77",
+    "url": "https://github.com/minekube/gate/blob/8dc77eacd4b0458b8805f652d8081a5e9d301c77/.web/docs/guide/security/index.md",
+    "sha256": "53bfdc9f0f47fa0d8ae02375a1c14b328f37b48cc1093ef8ae6888553bfb945e",
+    "bytes": 15696
+  },
+  {
+    "repo": "minekube/gate",
+    "path": ".web/docs/guide/compatibility.md",
+    "sha": "8dc77eacd4b0458b8805f652d8081a5e9d301c77",
+    "url": "https://github.com/minekube/gate/blob/8dc77eacd4b0458b8805f652d8081a5e9d301c77/.web/docs/guide/compatibility.md",
+    "sha256": "e52a4b3b1efa8c6318162d4f18342c18c3893462a565770639deedbd41e3a6c8",
+    "bytes": 3969
+  },
+  {
+    "repo": "minekube/gate",
+    "path": ".web/docs/guide/bedrock.md",
+    "sha": "8dc77eacd4b0458b8805f652d8081a5e9d301c77",
+    "url": "https://github.com/minekube/gate/blob/8dc77eacd4b0458b8805f652d8081a5e9d301c77/.web/docs/guide/bedrock.md",
+    "sha256": "939bef989e016a43cd9aea6ea592c727df8aa7aca870664aa9dc78d15a3418d4",
+    "bytes": 32048
+  },
+  {
+    "repo": "minekube/gate",
+    "path": ".web/docs/guide/multi-version.md",
+    "sha": "8dc77eacd4b0458b8805f652d8081a5e9d301c77",
+    "url": "https://github.com/minekube/gate/blob/8dc77eacd4b0458b8805f652d8081a5e9d301c77/.web/docs/guide/multi-version.md",
+    "sha256": "bc84a2716789a955d58e1e1e71ac49fcf968b03afa6307c2deecd156b2de14b5",
+    "bytes": 2960
+  },
+  {
+    "repo": "minekube/gate",
+    "path": "pkg/edition/java/netmc/connection.go",
+    "sha": "8dc77eacd4b0458b8805f652d8081a5e9d301c77",
+    "url": "https://github.com/minekube/gate/blob/8dc77eacd4b0458b8805f652d8081a5e9d301c77/pkg/edition/java/netmc/connection.go",
+    "sha256": "499a9bba8861c8da1e3d4d47499a298bb3c817a1d745f44803ee3c98b4bc9776",
+    "bytes": 23809
+  },
+  {
+    "repo": "minekube/gate",
+    "path": "pkg/edition/java/netmc/reader.go",
+    "sha": "8dc77eacd4b0458b8805f652d8081a5e9d301c77",
+    "url": "https://github.com/minekube/gate/blob/8dc77eacd4b0458b8805f652d8081a5e9d301c77/pkg/edition/java/netmc/reader.go",
+    "sha256": "15c1de77e714f5fa7b90531cff5e1469543d6f3cb6e0f6235927aadbfd6f9c31",
+    "bytes": 6492
+  },
+  {
+    "repo": "minekube/gate",
+    "path": "pkg/edition/java/netmc/writer.go",
+    "sha": "8dc77eacd4b0458b8805f652d8081a5e9d301c77",
+    "url": "https://github.com/minekube/gate/blob/8dc77eacd4b0458b8805f652d8081a5e9d301c77/pkg/edition/java/netmc/writer.go",
+    "sha256": "485372c5c4c4b71f86a3bb9e3eef85d4e404739cd4e5a690791a7247821aa16d",
+    "bytes": 2103
+  },
+  {
+    "repo": "minekube/gate",
+    "path": "pkg/edition/java/proxy/session_client_auth.go",
+    "sha": "8dc77eacd4b0458b8805f652d8081a5e9d301c77",
+    "url": "https://github.com/minekube/gate/blob/8dc77eacd4b0458b8805f652d8081a5e9d301c77/pkg/edition/java/proxy/session_client_auth.go",
+    "sha256": "ff46c67d22ea5a67d2b71fb8de7eb1388b86c7a0928271dd9c99f334f0fb1e7b",
+    "bytes": 11011
+  },
+  {
+    "repo": "minekube/gate",
+    "path": "LICENSE",
+    "sha": "8dc77eacd4b0458b8805f652d8081a5e9d301c77",
+    "url": "https://github.com/minekube/gate/blob/8dc77eacd4b0458b8805f652d8081a5e9d301c77/LICENSE",
+    "sha256": "59fdba99555edfafda411ba3508532ee21da3ebb90e3f4298dc15007ce524b20",
+    "bytes": 11338
+  },
+  {
+    "repo": "SpigotMC/BungeeCord",
+    "path": "proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java",
+    "sha": "c2f28c7572afbc0211ecb82f437526ca4ef0b11a",
+    "url": "https://github.com/SpigotMC/BungeeCord/blob/c2f28c7572afbc0211ecb82f437526ca4ef0b11a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java",
+    "sha256": "3520c647c6dc47df34e65029835c6f39b64abb4532a25c1ddae2d639c2a29f36",
+    "bytes": 33148
+  },
+  {
+    "repo": "SpigotMC/BungeeCord",
+    "path": "proxy/src/main/java/net/md_5/bungee/connection/DownstreamBridge.java",
+    "sha": "c2f28c7572afbc0211ecb82f437526ca4ef0b11a",
+    "url": "https://github.com/SpigotMC/BungeeCord/blob/c2f28c7572afbc0211ecb82f437526ca4ef0b11a/proxy/src/main/java/net/md_5/bungee/connection/DownstreamBridge.java",
+    "sha256": "9602a622f1ca70aba0f21a8ac9c514fb7dac4916cfba3b385e45f355bbd9f455",
+    "bytes": 36346
+  },
+  {
+    "repo": "SpigotMC/BungeeCord",
+    "path": "proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java",
+    "sha": "c2f28c7572afbc0211ecb82f437526ca4ef0b11a",
+    "url": "https://github.com/SpigotMC/BungeeCord/blob/c2f28c7572afbc0211ecb82f437526ca4ef0b11a/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java",
+    "sha256": "414fb774cc9336534894f0da66b2ad3a41623a456e672822fc41b04a3d5c4f22",
+    "bytes": 13878
+  },
+  {
+    "repo": "SpigotMC/BungeeCord",
+    "path": "proxy/src/main/java/net/md_5/bungee/netty/ChannelWrapper.java",
+    "sha": "c2f28c7572afbc0211ecb82f437526ca4ef0b11a",
+    "url": "https://github.com/SpigotMC/BungeeCord/blob/c2f28c7572afbc0211ecb82f437526ca4ef0b11a/proxy/src/main/java/net/md_5/bungee/netty/ChannelWrapper.java",
+    "sha256": "ffe66ae56e3c637b6bafc1938d7d2ea5a826d8f9b97682be7764673c24215c48",
+    "bytes": 7193
+  },
+  {
+    "repo": "SpigotMC/BungeeCord",
+    "path": "LICENSE",
+    "sha": "c2f28c7572afbc0211ecb82f437526ca4ef0b11a",
+    "url": "https://github.com/SpigotMC/BungeeCord/blob/c2f28c7572afbc0211ecb82f437526ca4ef0b11a/LICENSE",
+    "sha256": "c3134e1f3e978c8bd093cec890bf48bc18910407cc70f1ea0e3ef464dc9c1d74",
+    "bytes": 1532
+  },
+  {
+    "repo": "ViaVersion/ViaVersion",
+    "path": "README.md",
+    "sha": "8d56c719741fe8a12b39430ec40064d42ed9883b",
+    "url": "https://github.com/ViaVersion/ViaVersion/blob/8d56c719741fe8a12b39430ec40064d42ed9883b/README.md",
+    "sha256": "92851564dbbbaca567ff9afb0624b41c34ef977fa529f3ff3abbc9bf650ee5dd",
+    "bytes": 5525
+  },
+  {
+    "repo": "ViaVersion/ViaVersion",
+    "path": "LICENSE",
+    "sha": "8d56c719741fe8a12b39430ec40064d42ed9883b",
+    "url": "https://github.com/ViaVersion/ViaVersion/blob/8d56c719741fe8a12b39430ec40064d42ed9883b/LICENSE",
+    "sha256": "8b1ba204bb69a0ade2bfcf65ef294a920f6bb361b317dba43c7ef29d96332b9b",
+    "bytes": 35148
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/VelocityServer.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/VelocityServer.java",
+    "sha256": "4347bd76020e55d0001820a0501202c07c56da73993c018593f0146524393901",
+    "bytes": 34804
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/connection/PlayerDataForwarding.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/connection/PlayerDataForwarding.java",
+    "sha256": "7c715440d7c737c728730b143d6c0e166f4561c2737c52a7d7aebb28fce7fcc6",
+    "bytes": 7287
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/network/ConnectionManager.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/network/ConnectionManager.java",
+    "sha256": "0f96a80c522e828147b8a45efc86fadcdc5f8d44ece39ee17069491bff8b11c9",
+    "bytes": 11376
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/network/limiter/PacketLimiter.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/network/limiter/PacketLimiter.java",
+    "sha256": "d954901268dec3eeea6628068b3b8b3600fe6aeca12f0fefb34f8803547bbe1b",
+    "bytes": 1196
+  },
+  {
+    "repo": "PaperMC/Velocity",
+    "path": "proxy/src/main/java/com/velocitypowered/proxy/protocol/netty/AutoReadHolderHandler.java",
+    "sha": "5e8f92b98e6870c0118dadfdff42479d680654cc",
+    "url": "https://github.com/PaperMC/Velocity/blob/5e8f92b98e6870c0118dadfdff42479d680654cc/proxy/src/main/java/com/velocitypowered/proxy/protocol/netty/AutoReadHolderHandler.java",
+    "sha256": "d3667b4b4f4066b533d0e6bd24100a8211605c0a2cb49262e667eaad53820db6",
+    "bytes": 2540
+  },
+  {
+    "repo": "GeyserMC/Geyser",
+    "path": "core/src/main/java/org/geysermc/geyser/network/bedrock/nethernet/NetherNetServer.java",
+    "sha": "02dbfaccb8be68c47c176c96c24bdbddb472b375",
+    "url": "https://github.com/GeyserMC/Geyser/blob/02dbfaccb8be68c47c176c96c24bdbddb472b375/core/src/main/java/org/geysermc/geyser/network/bedrock/nethernet/NetherNetServer.java",
+    "sha256": "9476112d20f0300421efc45a1aa7a576db3121e3f861644c0f0e4f7dd218af9f",
+    "bytes": 27953
+  }
+]

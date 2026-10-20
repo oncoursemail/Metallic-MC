@@ -1,6 +1,8 @@
 # Metallic-MC private Minecraft pilot
 
-This is an executable, deliberately small Linux staging package: one Velocity proxy with Geyser and Floodgate, a flat adventure hub, and a bounded survival world on a second Paper process. It uses installed Java and ordinary child processes. The hub is an empty starter world; no custom map, minigame, matchmaking, production hosting platform, or protected public edge is implied.
+This is a deliberately small Linux staging package: one Velocity proxy with Geyser and Floodgate, a flat adventure hub, and a bounded survival world on a second Paper process. **The current loopback profile cannot establish NetherNet gameplay. `run` and `preflight` now refuse it before executing Java.** Initialization, artifact verification, EULA recording, configuration inspection, and stopped backups remain available. A usable private container network profile is an outstanding implementation gate.
+
+Research correction, 2026-10-20: the exact pinned Geyser build **2.12.0-b1265**, source commit `02dbfaccb8be68c47c176c96c24bdbddb472b375`, warns that loopback cannot form the required ICE connection, even for a local client. A listener may start and a TCP probe may succeed while gameplay times out. See [the pinned NetherNet implementation](https://github.com/GeyserMC/Geyser/blob/02dbfaccb8be68c47c176c96c24bdbddb472b375/core/src/main/java/org/geysermc/geyser/network/bedrock/nethernet/NetherNetServer.java) and [Geyser's transport guidance](https://geysermc.org/blog/preparing-for-nethernet/). This corrects the earlier assumption that loopback signaling and configuration checks established a usable local Bedrock path.
 
 The package is separate from the control dashboard. Dashboard telemetry does not launch it. It does not operate Docker, Wings, systemd, firewall rules, domains, router forwarding, or any remote machine. **Do not point it at the legacy Wings deployment on alexbuz1.**
 
@@ -9,8 +11,8 @@ The package is separate from the control dashboard. Dashboard telemetry does not
 - `init` creates a **new directory outside the checkout** with private permissions, independent backend configs, and a cryptographically generated forwarding secret. It refuses an existing directory, including any existing world. It leaves both Minecraft EULAs unaccepted.
 - `fetch` obtains only four exact upstream builds, verifies their SHA-256 hashes before installation, checks the pinned PaperMC sizes, bounds each download to 200 MiB, and refuses redirects. The download URLs are constructed from validated official project/version/build/hash fields; there is no arbitrary-URL option or automatic updater. An existing mismatched JAR is rejected, not silently replaced.
 - `validate` checks routing, authentication, shared-secret consistency, private binding, Bedrock signaling, whitelist enforcement, disabled RCON/query/management listeners, and unexpected plugin JARs. It never prints secrets. `--artifacts` adds checksums for every installed entrypoint JAR.
-- `preflight` checks installed Java 25, effective Linux/cgroup memory and CPU allowance, host load, free disk, runtime size, and all four configured ports, including **both TCP and UDP** for Bedrock.
-- `run` starts the two backends in dependency order, then the proxy. It waits for actual Java server-list status replies, the Bedrock signaling TCP listener, and Floodgate's generated key file. It runs in the foreground, watches its children and resource headroom, and sends Minecraft console shutdown commands on Ctrl-C, SIGTERM, an explicit stop request, startup failure, or a sustained resource problem.
+- `preflight` first checks transport launchability and rejects the current loopback profile. The later gates check installed Java 25, effective Linux/cgroup memory and CPU allowance, host load, free disk, runtime size, and the four configured ports, including **both TCP and UDP** for Bedrock.
+- `run` first requires the owner's accepted EULA and a supported private transport profile. The present profile is blocked. The supervisor code behind that gate implements dependency ordering, status probes, owned child monitoring, and graceful shutdown; those lifecycle mechanics have Python fixture coverage, not authenticated Minecraft gameplay acceptance.
 - `stop` requests shutdown through a private local file and an operating-system-held supervisor lock. It does not signal a saved PID. A stale state file cannot authorize killing an unrelated process. The foreground supervisor reports whether shutdown was clean.
 - `allow` adds an explicitly supplied authenticated UUID/name to both backend whitelists while stopped. It grants no operator permissions.
 - `backup` creates a compressed stopped-world snapshot with an internal per-file digest manifest and a separate archive SHA-256. `restore` verifies both layers and writes only to a new directory.
@@ -39,15 +41,15 @@ The **entrypoint artifacts** are reproducible from the lock. This is not an offl
 | Service | Listen address | Protocol | Access |
 |---|---|---|---|
 | Velocity | `127.0.0.1:25565` | TCP | Java client on the same host |
-| Geyser | `127.0.0.1:19132` | TCP + UDP | Local NetherNet signaling and gameplay |
+| Geyser | `127.0.0.1:19132` | TCP + UDP | Staging only; no usable NetherNet ICE gameplay path |
 | Paper hub | `127.0.0.1:25566` | TCP | Velocity modern forwarding required |
 | Paper game | `127.0.0.1:25567` | TCP | Velocity modern forwarding required |
 
 Velocity authenticates Java accounts. Paper's `server.properties` therefore uses `online-mode=false`, while `proxies.velocity.online-mode=true` matches the proxy, `proxies.velocity.enabled=true`, and the secret matches the private `forwarding.secret` file. BungeeCord legacy forwarding is disabled. This is the [official modern forwarding configuration](https://docs.papermc.io/velocity/player-information-forwarding/). Modern forwarding still does not replace network isolation or a firewall when a future deployment expands beyond loopback; see [Velocity security](https://docs.papermc.io/velocity/security/).
 
-Geyser uses **NetherNet only**, builtin signaling, a loopback advertised address, and full Bedrock login validation. External NXS registration, assisted joins, STUN discovery, global account linking, and RCON are disabled in this profile. Bedrock 26.50+ fully supports the current NetherNet-only setup; some older versions need the separate RakNet compatibility path described by [Geyser's setup guide](https://geysermc.org/wiki/geyser/setup/). No RakNet port is opened here.
+Geyser is configured for **NetherNet only**, builtin signaling, a loopback advertised address, and full Bedrock login validation. These values are private staging defaults, not a working Bedrock transport. A future profile must use a reachable non-loopback address inside the dedicated Metallic-MC project network and verify the actual ICE/UDP path. External NXS registration, assisted joins, STUN discovery, global account linking, and RCON remain disabled. No RakNet port is opened here.
 
-Builtin signaling uses local HTTP; a local Bedrock client may show its documented first-use trust prompt. Serving remote users requires a separate reviewed private-access/HTTPS design. A Java-only SSH port forward does **not** provide the UDP path needed for Bedrock gameplay. This package does not expose the host or register a signaling service on the user's behalf.
+Builtin signaling uses local HTTP. Reachability of that listener does not establish the later WebRTC data channel. A Java-only SSH port forward does **not** provide the UDP path needed for Bedrock gameplay. The replacement profile must distinguish the listening interface, advertised private address, HTTPS signaling, and permitted ingress. This package does not expose the host or register a signaling service on the user's behalf.
 
 ## Resource budget
 
@@ -141,16 +143,16 @@ The implementation has **28 automated safety/lifecycle tests**. They cover EULA 
 python3 -m unittest discover -s tools -p 'pilot_test.py' -v
 ```
 
-The pinned official JAR download path was exercised successfully for all four artifacts. Generated configuration validation and checksum validation passed. **Real Java and Bedrock login, world transfer, world save/restart, and gameplay have not been verified.** No EULA was accepted and no Minecraft service was started during package preparation.
+The pinned official JAR download path was exercised successfully for all four artifacts. Generated configuration validation and checksum validation passed. **Real Java and Bedrock login, world transfer, world save/restart, and gameplay have not been verified.** The owner subsequently accepted the EULA, which was recorded in the new private comparison runtime; source defaults still require each runtime's owner decision. That acceptance does not remove the known transport blocker, and no Minecraft service was started.
 
 Use these separate acceptance results; never substitute a weaker check for a stronger one:
 
 | Check | What it establishes | What it does not establish |
 |---|---|---|
-| `validate` | Required configuration and security invariants | That Java loaded the files successfully |
+| `validate` | Static configuration invariants, plus explicit `launch_ready` and `launch_blockers` | A working ICE path or loaded JVM configuration |
 | `validate --artifacts` | Entry JAR contents match their exact pins | Complete supply-chain or compatibility review |
-| `preflight` | Current resource allowance and port availability | A durable resource reservation |
-| `run` startup gate | Java status responses, signaling listener and Floodgate key creation | Authenticated player login or correct skins/inventories |
+| `preflight` | Rejects the known transport blocker before later resource/Java gates | A durable resource reservation or a usable current profile |
+| `run` startup gate | Rejects the current known-unplayable profile before Java execution | Authenticated player login or correct skins/inventories |
 | `probe` | Java status protocol and Bedrock signaling TCP reachability | Bedrock UDP gameplay or authentication |
 | Real Java + Bedrock clients | Login, interaction, transfers and per-edition behavior | Production load/capacity, internet DDoS protection |
 | Restart + restore exercise | Persistence and recovery under the tested scenario | Grief-proof or power-loss-proof guarantees |

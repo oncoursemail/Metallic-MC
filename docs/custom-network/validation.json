@@ -1,0 +1,94 @@
+{
+  "schema": "metallic.custom-core-validation/v1",
+  "recordedAt": "2026-10-20T02:56:56.547828+00:00",
+  "baseCommit": "d49c6c759516354c5c9b12c4dc56a2ab2a138658",
+  "productionReady": false,
+  "liveGameplayTested": false,
+  "comparativePerformanceMeasured": false,
+  "toolchain": {
+    "go": "go1.27.2",
+    "os": "linux",
+    "architecture": "amd64",
+    "GOMAXPROCS": 2
+  },
+  "fullGoSuite": {
+    "command": "go test -race -count=1 -p 2 -json ./...",
+    "exitCode": 0,
+    "packages": 18,
+    "topLevelUnitTests": 189,
+    "unitSubtests": 647,
+    "fuzzSeedSubtests": 14,
+    "fuzzTargetsSeedMode": 3,
+    "failures": 0,
+    "skips": 0
+  },
+  "finalLabRerun": {
+    "command": "go test -race -count=1 -json ./cmd/metallic-core-lab",
+    "exitCode": 0,
+    "integratedChecks": 19,
+    "reason": "Destination realm context and final report were corrected after the whole-suite run began; the final executable was race-tested, vetted, and executed again."
+  },
+  "otherChecks": [
+    {
+      "command": "go vet ./...",
+      "exitCode": 0
+    },
+    {
+      "command": "go build ./...",
+      "exitCode": 0
+    },
+    {
+      "command": "go vet ./cmd/metallic-core-lab",
+      "exitCode": 0
+    },
+    {
+      "command": "go run ./cmd/metallic-core-lab",
+      "exitCode": 0
+    },
+    {
+      "command": "python3 -m unittest discover -s tools -p 'pilot_test.py' -v",
+      "tests": 29,
+      "exitCode": 0
+    },
+    {
+      "command": "python3 -m unittest discover -s infra/systemd -p '*_test.py' -v",
+      "tests": 6,
+      "exitCode": 0
+    },
+    {
+      "command": "gofmt -l internal/network cmd/metallic-core-lab",
+      "exitCode": 0,
+      "outputEmpty": true
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "boundedFuzzCampaigns": {
+    "scope": "Earlier core revision before narrow review fixes; final regressions and race suite passed afterward. These counts do not describe a repeated campaign on the final revision.",
+    "policyExecutions": 134798,
+    "policyTargetSeconds": 5,
+    "wireExecutions": 178390,
+    "wireTargetSeconds": 10
+  },
+  "sourceSHA256": {
+    "cmd/metallic-core-lab/main.go": "159451bcb57fb44c065bd6df02ee6de72513098204654096cc9c31227c5ecc6d",
+    "cmd/metallic-core-lab/main_test.go": "bafe2f9abe2a1f492619aca1032fbef47397009a2244776f973ba858b5735322",
+    "internal/network/policy/policy.go": "5d61ffa02850f2b00569e6d854761f1c44895ff29bf4fa75d9ae4eb5e893c3bb",
+    "internal/network/policy/policy_test.go": "eb9092cad87a73adeae29765d3e2b7e32958114618adbeb446a6a55bc6353d2e",
+    "internal/network/presentation/presentation.go": "a7d39a353356dd40864753425079f9a9664de9d0e962047349f190dc6b07c5be",
+    "internal/network/presentation/presentation_test.go": "cf76646f874e16990136b2ce4a91093168c2796f957d96023c13eb725fc88b85",
+    "internal/network/session/session.go": "00d63604c8d375957e33126417e1b684f71693472fabe9d4b9d645b12dbd0aaa",
+    "internal/network/session/session_test.go": "2e310d44cb4f9001dd9797a44b1d60a67234230b998bf63b38fe3d00ffaea818",
+    "internal/network/wire/frame.go": "ae177182f8eb904e95bfb400cf7d674abf200bf0b2f8f9a1cc7a696f79737ae1",
+    "internal/network/wire/frame_test.go": "c8ec02eaea60cacd47fb0ef735ca055067d9b663819874438b698d13dd1dd89f",
+    "tools/pilot.py": "433a6acb5521598f789d4d091d7a591b56bad598e2d9d18a67b6036306293aee",
+    "tools/pilot_test.py": "ac5b785366724872b0199d476e5d05ef07c1ff0a612587e8a54414112c141855"
+  },
+  "limitations": [
+    "Offline deterministic scenario, not Minecraft gameplay.",
+    "No authenticated policy publisher, durable authority transaction, real packet writer, or playable proxy.",
+    "Tests cannot establish distributed freshness, world-file fencing, comparative capacity, or provider CI success."
+  ]
+}

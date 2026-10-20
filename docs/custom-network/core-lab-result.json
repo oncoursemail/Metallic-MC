@@ -1,0 +1,92 @@
+{
+  "schema": "metallic.core-lab/v1",
+  "simulation": true,
+  "productionReady": false,
+  "clock": "fixed synthetic clock; no live measurements",
+  "checks": [
+    {
+      "name": "inherited_allow_has_witness",
+      "passed": true
+    },
+    {
+      "name": "contextual_deny_overrides_allow",
+      "passed": true
+    },
+    {
+      "name": "wrong_policy_version_denied",
+      "passed": true
+    },
+    {
+      "name": "view_uses_session_and_policy_versions",
+      "passed": true
+    },
+    {
+      "name": "scheduled_deny_expires_queued_view",
+      "passed": true
+    },
+    {
+      "name": "new_revision_revokes_command",
+      "passed": true
+    },
+    {
+      "name": "privacy_removal_precedes_updates",
+      "passed": true
+    },
+    {
+      "name": "revoked_player_removed_from_model",
+      "passed": true
+    },
+    {
+      "name": "replayed_view_plan_rejected",
+      "passed": true
+    },
+    {
+      "name": "view_policy_rollback_rejected",
+      "passed": true
+    },
+    {
+      "name": "destination_cannot_claim_before_freeze",
+      "passed": true
+    },
+    {
+      "name": "freeze_removes_owner_and_fences_source",
+      "passed": true
+    },
+    {
+      "name": "handoff_is_bound_to_destination",
+      "passed": true
+    },
+    {
+      "name": "only_destination_has_current_fence",
+      "passed": true
+    },
+    {
+      "name": "duplicate_handoff_claim_rejected",
+      "passed": true
+    },
+    {
+      "name": "destination_rebuilds_trusted_context",
+      "passed": true
+    },
+    {
+      "name": "session_change_requires_new_view",
+      "passed": true
+    },
+    {
+      "name": "overload_waits_before_reading_body",
+      "passed": true
+    },
+    {
+      "name": "budget_resume_preserves_frame_alignment",
+      "passed": true
+    }
+  ],
+  "visiblePlayerIds": [
+    "builder"
+  ],
+  "policyRevision": 2,
+  "sessionGeneration": 2,
+  "ownerInstance": "arena:boot2",
+  "contextRevision": 3,
+  "realm": "arena"
+}

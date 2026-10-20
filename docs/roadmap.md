@@ -2,6 +2,17 @@
 
 Each milestone has acceptance criteria. Feature ideas are grouped by dependency and **not represented as completed**.
 
+## Current owner direction: custom software, October 20
+
+The [custom network specification](custom-network/architecture.md) now governs
+Gateway, Authority, Presence, Director, Runtime, Games and Recovery development.
+Its C0–C7 gates complement the product phases below. C0 includes four original
+offline Go packages and a runnable integration lab; it is not a playable proxy or
+a full LuckPerms/TAB replacement. The first durable and playable adapters are
+next. Velocity remains a comparison baseline instead of the final gateway.
+See the [research](custom-network/research.md), [measurement plan](custom-network/benchmarks.md)
+and [implementation evidence](custom-network/implementation.md).
+
 ## M0 — Control foundation [PROTOTYPE IMPLEMENTED]
 
 Read-only admin dashboard, authenticated Linux agent, CPU/RAM/disk/load, static service health probes, tests, threat model and initial network architecture. Live telemetry is ephemeral and must not be used as a durable reservation or billing record. Architect host policy has separately opt-in persistence.
@@ -15,7 +26,7 @@ Read-only admin dashboard, authenticated Linux agent, CPU/RAM/disk/load, static 
 - The existing Wings service and heavy Star AI model processes on the connected machines were observed only; no host changes were made.
 - Source: [shared-platform.md](shared-platform.md), [hardware-snapshot.md](hardware-snapshot.md), [star-ai-integration.md](star-ai-integration.md).
 
-## M1 — Playable private Java + Bedrock network [PILOT TOOLING IMPLEMENTED; GAMEPLAY VALIDATION PENDING]
+## M1 — Playable private Java + Bedrock network [STAGING TOOLING IMPLEMENTED; TRANSPORT AND GAMEPLAY PENDING]
 
 - Operate Velocity gateway on a private/internal interface behind an approved protective edge.
 - Install Geyser-Velocity and Floodgate; verify present Bedrock TCP/UDP transports and auth.
@@ -24,6 +35,11 @@ Read-only admin dashboard, authenticated Linux agent, CPU/RAM/disk/load, static 
 - Game profile presets, safe world backups, login transfer test matrix for desktop, mobile and console joining routes.
 
 **Done means:** Java and Bedrock can authenticate, play and move through at least two protected backends with no direct backend access; restore a world backup.
+
+The current pinned Geyser/loopback profile is known to be unable to establish
+NetherNet gameplay. Launch is now guarded. Owner EULA acceptance is recorded;
+dedicated container provisioning and a reachable private ICE interface remain
+unresolved. A successful configuration check is not M1 completion.
 
 ## M2 — Real cluster operations [PRIVATE HOST POLICY AND RECOVERY IMPLEMENTED; ORCHESTRATION PENDING]
 

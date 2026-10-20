@@ -6,16 +6,42 @@
 
 Metallic-MC is being designed as a complete game network with a dedicated public edge, custom game services, a cluster control plane, observability, and an eventual hosting platform. It is intended to scale horizontally across hardware owned by Metallic.
 
-> **Current stage: private pilot tooling and control foundation.** The repository includes a real read-only dashboard, a conservative resource-placement preview, an opt-in scoped Star AI status API, a Linux metrics agent, optional persistent hosting policy, and a guarded local Minecraft pilot runner. A live Java/Bedrock login, public DDoS-protected edge, secure multi-tenancy, persistent telemetry and a custom Minecraft engine remain unverified or unimplemented. A successful `go test` is not a game-server load benchmark.
+> **Current stage: custom offline network core, private staging tooling and control foundation.** The repository includes original packet framing, permissions, session ownership and player display code; a runnable integration lab; a real read-only dashboard; conservative placement preview; an opt-in scoped Star AI status API; a Linux metrics agent; and optional persistent hosting policy. The pinned loopback Geyser profile cannot establish Bedrock gameplay, so pilot launch is blocked. A playable custom gateway, live Java/Bedrock login, public protected edge, secure multi-tenancy and a custom game engine remain unverified or unimplemented. A successful `go test` is not a game-server load benchmark.
 
 ## Verified technical direction (October 2026)
 
 - **Java-first game servers:** Paper 26.3 / Java 25 for compatibility-first worlds and custom plugins. Benchmark Folia for workloads where players occupy separated regions; Folia is not a transparent replacement for Paper.
-- **Front door:** Velocity with authenticated modern forwarding, locked-down backends, and a configurable Minecraft-focused DDoS mitigation edge.
+- **Front door:** Metallic-owned Gateway is the target. Velocity and Gate are explicit comparison/migration baselines. Require online authentication, authenticated backend forwarding, isolated backends and a verified protective edge before promotion.
 - **Bedrock:** Geyser-Velocity and Floodgate. Current Bedrock transport requirements include NetherNet TCP+UDP at the Geyser port, plus optional legacy RakNet as documented by Geyser. Never design the public edge as Java TCP-only.
-- **Custom code:** Metallic Control (control plane), Metallic Agent (host telemetry), later Metallic Gateway extensions, Match Director, game plugins, identity/party system, and server provisioning.
+- **Custom code:** Metallic Control and Agent plus Gateway, Authority, Presence, Director, Runtime, Games and Recovery modules. Four offline core packages are implemented; live adapters, durable authority and the playable custom gateway are later gates.
 - **Selective engine engineering:** Start with Paper/Folia for compatibility. Profile before forking; use Minestom for purpose-built instances that do not need vanilla or Bukkit plugins. Separate an experimental fork from stable production.
 - **Scale horizontally:** Target 1k -> 5k -> 10k *aggregate concurrent players*, measured across many game server instances and multiple physical machines. No capacity number is claimed until replayable load tests pass.
+
+## Original custom network core
+
+The owner's October 20 direction replaces the earlier plan to stop at Velocity
+extensions. The target is software Metallic owns for routing, permissions,
+presentation, player ownership, games and fleet policy. The common contract binds
+authority epoch, session generation, process incarnation, policy revision/digest,
+trusted context and viewer revision. Existing products remain fair comparison
+baselines while replacements prove their behavior.
+
+- [Architecture and staged delivery](docs/custom-network/architecture.md)
+- [Deep primary-source research and pinned evidence](docs/custom-network/research.md)
+- [Comparative experiment specification](docs/custom-network/benchmarks.md)
+- [Implemented code, verification and remaining integration](docs/custom-network/implementation.md)
+
+Run the deterministic offline scenario with Go 1.23+:
+
+```sh
+go run ./cmd/metallic-core-lab
+```
+
+It connects bounded packet buffering, inherited/contextual permissions, timed
+denials, stale display rejection and a fenced player handoff. The output is
+explicitly synthetic and `productionReady: false`. It opens no listener and does
+not authenticate a Minecraft client or save a world. See each package's README
+under `internal/network/` for exact API and caller responsibilities.
 
 ## Implemented foundation: M0 + read-only M0.5
 
@@ -68,7 +94,7 @@ The resource planner is a **read-only what-if tool**; it does not book capacity 
 
 To give Star AI a separate read-only view, optionally generate `METALLIC_STARAI_READ_TOKEN` (minimum 24 characters; different from the agent token), keep it in a secret store, and send it with `GET /api/v1/ai/context` on a protected private HTTPS connection. It never grants command execution. See [Star AI integration](docs/star-ai-integration.md).
 
-Current limitations: no persisted sessions, nodes, metrics, audit log or RBAC; admin access is a single account; agent/service probes are TCP reachability only; Linux-only agent. See [Security](docs/security.md) before enabling remote connections.
+Current control-application limitations: no persisted administrator sessions, live nodes, metrics or audit log; admin access is a single account, and the new offline policy core is not yet wired into its enforcement path. Agent/service probes are TCP reachability only; Linux-only agent. See [Security](docs/security.md) before enabling remote connections.
 
 ```bash
 go test -race ./...
@@ -79,7 +105,7 @@ go build ./cmd/metallic-agent
 
 ## Private pilot and restart recovery
 
-The repository now includes an executable [private Java/Bedrock pilot](docs/private-pilot.md): four pinned upstream artifacts, generated loopback-only proxy/backend configurations, authenticated modern forwarding, an owner-managed whitelist, resource/port admission checks, and supervised graceful shutdown. It prepares a hub and a separate game world. The tool does not accept Minecraft terms, choose a public ingress provider, or establish a completed Java/Bedrock login test.
+The [private Java/Bedrock comparison pilot](docs/private-pilot.md) stages four pinned upstream artifacts, loopback configurations, authenticated modern forwarding, an owner-managed whitelist and a hub plus game world. Source inspection of the exact pinned Geyser build established that its NetherNet gameplay cannot connect over loopback. `run` and `preflight` now reject that profile before Java executes; configuration validity and a TCP probe cannot claim playable readiness. A verified private container interface and reachable ICE address remain to be implemented. The owner's Minecraft EULA acceptance is recorded in the private comparison runtime; generated source defaults still require explicit owner acceptance.
 
 Architect can optionally keep its host registry in a [private durable Linux store](docs/hosting-persistence.md). Set `METALLIC_HOSTING_STORE_PATH` only with Architect enabled. Host registrations, credential digests, revocations and allocation plans survive controller restart. Pending pairing tickets, administrator sessions and live telemetry remain ephemeral; nodes need fresh authenticated heartbeats. Unavailable or corrupt state stops startup instead of resetting permissions.
 
@@ -94,11 +120,14 @@ These capabilities are development/staging code. See the dated [integration and 
 ```text
 cmd/metallic-control/    Control API + dashboard executable
 cmd/metallic-agent/      Linux host monitoring process
+cmd/metallic-core-lab/   Deterministic offline integration scenario
+internal/network/       Original policy, session, presentation and framing core
 internal/control/        Auth, metrics ingestion, JSON API and AI context
 internal/resources/      Pure, tested placement-preview policy engine
 internal/control/web/    Original Metallic dashboard design, assets, login
 internal/agent/          Linux CPU/memory/disk measurements and TCP probes
 docs/architecture.md     Target network topology and service boundaries
+docs/custom-network/     Current original architecture, research and experiment plan
 docs/security.md         DDoS, authentication, secrets, incident handling
 docs/benchmarks.md       Test methodology, profiling and release gates
 docs/roadmap.md          Versioned implementation phases and product vision
@@ -113,8 +142,10 @@ infra/                   Future edge, proxy, node and telemetry deployment manif
 
 - Foundation: controller + agent + real telemetry **implemented locally and tested**.
 - Shared resources M0.5: read-only resource planner and opt-in Star AI context endpoint **implemented locally and tested**; no privileged scheduler or containers deployed.
-- Java/Bedrock network pilot: Velocity + Geyser + Floodgate + Paper 26.3, authenticated forwarding and private backends **not deployed**.
-- MetallicCore plugin suite: proxy orchestration, cross-server party/chat, invitations, matchmaking and events **planned**.
+- Custom network C0: original policy/session/presentation/framing core and deterministic integration lab **implemented offline and tested**; no live protocol or plugin claim.
+- Java/Bedrock comparison pilot: Velocity + Geyser + Floodgate + Paper 26.3 **staged, launch blocked** pending the private container transport and actual client validation.
+- Custom Gateway, Authority and Presence adapters: online session protocol, durable authorization, client packet output and migration conformance **planned**.
+- Metallic game suite: cross-server party/chat, invitations, matchmaking and original events **planned**.
 - Fleet manager: server templates, placements, capacity management, safe restarts, snapshots and persistent metrics **planned**.
 - Engine lab: controlled Paper/Folia benchmarking and optimized fork **research stage**.
 - Hosting platform: isolated per-user game servers, access control, billing integration, plugin/mod compatibility and abuse prevention **long-term**.

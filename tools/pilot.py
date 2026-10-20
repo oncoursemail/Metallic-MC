@@ -407,6 +407,24 @@ def eula_accepted(root: Path) -> bool:
     return all(properties(root / role / "eula.txt").get("eula") == "true" for role in ("hub", "game"))
 
 
+def transport_launch_blockers(profile: dict) -> list[str]:
+    """Static security validation is not proof of a usable NetherNet ICE path.
+
+    The pinned Geyser b1265 source explicitly warns that loopback ICE candidates
+    cannot connect, even from a local client. Keep private staging available but
+    refuse to execute the known-unplayable profile. A supported non-loopback
+    container profile must be implemented and validated before this gate changes.
+    """
+    if profile.get("bind") == "127.0.0.1":
+        return ["Pinned Geyser NetherNet cannot establish gameplay over loopback. A verified private container interface and reachable ICE address are required; the current profile supports staging only."]
+    return ["No validated non-loopback private container transport profile is implemented."]
+
+
+def require_transport_launchable(profile: dict) -> None:
+    blockers = transport_launch_blockers(profile)
+    require(not blockers, " ".join(blockers))
+
+
 def clean_java_environment() -> dict[str, str]:
     env = os.environ.copy()
     for key in ("JAVA_TOOL_OPTIONS", "_JAVA_OPTIONS", "JDK_JAVA_OPTIONS", "CLASSPATH", "VELOCITY_FORWARDING_SECRET"):
@@ -609,6 +627,7 @@ def run(root: Path, profile: dict, lock: dict, java: str) -> None:
     with lease(root):
         validate_config(root, profile)
         require(eula_accepted(root), "Minecraft EULA is unaccepted. The owner must review it and manually set eula=true in both backend eula.txt files")
+        require_transport_launchable(profile)
         require(os.geteuid() != 0, "Run the pilot as a dedicated unprivileged Linux user, never root")
         verify_all(root, lock)
         executable = java_executable(java)
@@ -964,10 +983,12 @@ def main(argv=None) -> int:
             validate_config(root, profile)
             if args.artifacts:
                 verify_all(root, lock)
-            print(json.dumps({"config": "valid", "artifacts": "verified" if args.artifacts else "not checked", "eula": "accepted by owner" if eula_accepted(root) else "not accepted", "java_login": "not tested", "bedrock_login": "not tested"}, indent=2))
+            blockers = transport_launch_blockers(profile)
+            print(json.dumps({"config": "valid", "artifacts": "verified" if args.artifacts else "not checked", "eula": "accepted by owner" if eula_accepted(root) else "not accepted", "launch_ready": not blockers, "launch_blockers": blockers, "java_login": "not tested", "bedrock_login": "not tested"}, indent=2))
         elif args.command == "preflight":
             with lease(root):
                 validate_config(root, profile)
+                require_transport_launchable(profile)
                 verify_all(root, lock)
                 java_executable(args.java)
                 result = check_headroom(root, profile)
@@ -979,8 +1000,9 @@ def main(argv=None) -> int:
             request_stop(root)
         elif args.command == "probe":
             result = probe(root, profile)
+            result["launch_blockers"] = transport_launch_blockers(profile)
             print(json.dumps(result, indent=2))
-            return 0 if all(x["ok"] for x in result["java_status"].values()) and result["bedrock_signaling_tcp"] else 1
+            return 0 if not result["launch_blockers"] and all(x["ok"] for x in result["java_status"].values()) and result["bedrock_signaling_tcp"] else 1
         elif args.command == "allow":
             allow_player(root, args.name, args.uuid)
         elif args.command == "backup":

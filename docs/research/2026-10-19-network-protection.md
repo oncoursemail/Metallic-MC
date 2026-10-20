@@ -1,4 +1,4 @@
-# Metallic MC: network protection and latency research
+# Metallic-MC: network protection and latency research
 
 Engineering research and source ledger. Checked 2026-10-19 UTC. This is a design recommendation and evidence ledger, not a deployed-protection report. Official project/provider documentation is the factual basis; architecture proposals and acceptance thresholds below are engineering judgments. See the companion engineering brief for the limited read-only host observations; this document does not establish the live network configuration or performance.
 

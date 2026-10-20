@@ -26,9 +26,9 @@ type Profile struct {
 // Workload profiles are ONLY what-if templates, never proof of player capacity.
 // The memory budget represents total container memory including JVM native overhead.
 var profiles = []Profile{
-	{ID: "mc-lobby", Name: "Minecraft lobby", Project: "Metallic MC", Class: "realtime", CPUMilli: 2000, MemoryBytes: 4 * GiB, DiskBytes: 8 * GiB, Description: "One Paper lobby; deliberately conservative example budget."},
-	{ID: "mc-match", Name: "Minecraft match", Project: "Metallic MC", Class: "realtime", CPUMilli: 3000, MemoryBytes: 6 * GiB, DiskBytes: 10 * GiB, Description: "A single independently managed minigame instance."},
-	{ID: "metallic-world", Name: "Metallic game world", Project: "Metallic", Class: "realtime", CPUMilli: 4000, MemoryBytes: 8 * GiB, DiskBytes: 12 * GiB, Description: "Example persistent social-world service, not an engine benchmark."},
+	{ID: "mc-lobby", Name: "Minecraft lobby", Project: "Metallic-MC", Class: "realtime", CPUMilli: 2000, MemoryBytes: 4 * GiB, DiskBytes: 8 * GiB, Description: "One Paper lobby; deliberately conservative example budget."},
+	{ID: "mc-match", Name: "Minecraft match", Project: "Metallic-MC", Class: "realtime", CPUMilli: 3000, MemoryBytes: 6 * GiB, DiskBytes: 10 * GiB, Description: "A single independently managed minigame instance."},
+	{ID: "metallic-world", Name: "Metallic-RC game world", Project: "Metallic-RC", Class: "realtime", CPUMilli: 4000, MemoryBytes: 8 * GiB, DiskBytes: 12 * GiB, Description: "Example persistent social-world service, not an engine benchmark."},
 	{ID: "star-inference", Name: "Star AI inference", Project: "Star AI", Class: "standard", CPUMilli: 3000, MemoryBytes: 8 * GiB, DiskBytes: 4 * GiB, Description: "Example model-serving slice; actual model memory varies considerably."},
 	{ID: "star-learning", Name: "Star AI background learning", Project: "Star AI", Class: "batch", CPUMilli: 6000, MemoryBytes: 12 * GiB, DiskBytes: 12 * GiB, Preemptible: true, Description: "Deferrable practice job; only preview when host has spare resources."},
 }

@@ -1,4 +1,4 @@
-# Metallic MC engine and Bedrock research
+# Metallic-MC engine and Bedrock research
 
 Research date: 2026-10-19 UTC. This is an interim engineering report for the coordinating agent. Primary-source findings are distinguished from original design proposals and targets. No Minecraft engine was built, benchmarked, installed, or deployed in this research task. No live server protection or measured capacity is established by this report.
 

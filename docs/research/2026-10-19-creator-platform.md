@@ -1,4 +1,4 @@
-# Metallic MC: creator platform, game discovery, and hosting research
+# Metallic-MC: creator platform, game discovery, and hosting research
 
 Research snapshot: 2026-10-19 UTC / 2026-10-18 evening America/Chicago. Prepared as internal research for the parent agent. This is a design proposal; no Metallic deployment, benchmark, account access, or competitor internal system inspection occurred. All vendor facts below come from their public primary sources. Proposed targets are explicitly targets, not measured results.
 

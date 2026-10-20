@@ -1,4 +1,4 @@
-# ADR 0002 — shared infrastructure for Star AI, Metallic and Metallic MC
+# ADR 0002 — shared infrastructure for Star AI, Metallic-RC and Metallic-MC
 
 **Decision:** Adopt a shared hardware resource plane with **separate administrative and execution boundaries per product**, and prioritize latency-sensitive game services over discretionary batch compute. Status: **architecture adopted for design; no host changes deployed**. Updated 2026-10-18.
 
@@ -6,7 +6,7 @@
 
 The two remotely connected machines already host workloads used by Star AI. We cannot reclaim memory or cores just because a learner is idle. The system must know actual CPU use and pressure, live game demand, disk headroom, backup traffic, and per-project allocations **before** scheduling new processes.
 
-A container is a resource isolation mechanism, not the full definition of a product. A large game network needs **many containers per project**, not one huge Java process. Use distinct namespaces/projects for Star AI, the Metallic social game, Metallic MC and, later, customer hosting. Keep the control plane outside the game processes.
+A container is a resource isolation mechanism, not the full definition of a product. A large game network needs **many containers per project**, not one huge Java process. Use distinct namespaces/projects for Star AI, the Metallic-RC social game, Metallic-MC and, later, customer hosting. Keep the control plane outside the game processes.
 
 ```mermaid
 flowchart TB
@@ -16,9 +16,9 @@ flowchart TB
    AGENTS --> S2[alexbuz1 compute node]
    S1 --> AI[Star AI inference + deferrable learning]
    S2 --> AI
-   S1 --> MC[Metallic MC proxy + game instances]
+   S1 --> MC[Metallic-MC proxy + game instances]
    S2 --> MC
-   S1 --> REC[Metallic social-game servers]
+   S1 --> REC[Metallic-RC social-game servers]
    S2 --> REC
    MC -.-> AI_BRIDGE[Authorized AI NPC / assistance gateway]
    REC -.-> AI_BRIDGE
@@ -61,7 +61,7 @@ flowchart TB
 
 - **Existing Pterodactyl/Pelican Wings + panel:** quickest reuse for game-server lifecycle on a node that already runs Wings. Treat its existing Docker management as owned; integrate with the supported panel APIs rather than a competing daemon modifying its containers. Verify version/administrative authorization before any API changes.
 - **Nomad:** flexible lean scheduler for mixed workloads, native Docker driver and CPU core isolation. Worth testing in a *separate lab*, especially if several physical nodes join, but adds operational dependencies. Nomad job `cores` semantics need correct root/cgroup setup.
-- **Agones + Kubernetes:** strong Fleet, allocation and game session autoscaling, on-prem friendly, but higher cluster complexity. Particularly appropriate for large ephemeral Metallic social-game match fleets and eventually MC short-lived minigames; not required to launch the first 2-node pilot.
+- **Agones + Kubernetes:** strong Fleet, allocation and game session autoscaling, on-prem friendly, but higher cluster complexity. Particularly appropriate for large ephemeral Metallic-RC social-game match fleets and eventually MC short-lived minigames; not required to launch the first 2-node pilot.
 - **Our custom software:** Metallic Control remains the product-specific UI, placement policy, metrics, game matchmaking and Star AI status surface. We should integrate proven engine/runtime primitives rather than build an unaudited Linux container runtime from scratch.
 
 Primary sources: https://pelican.dev/docs/ , https://docs.pterodactyl.io/v2/project/how-it-works , https://docs.hashicorp.com/nomad/docs/architecture/cpu , https://agones.dev/site/docs/overview/ , https://docs.docker.com/engine/containers/resource_constraints .
@@ -77,5 +77,5 @@ Primary sources: https://pelican.dev/docs/ , https://docs.pterodactyl.io/v2/proj
 ## Project status
 
 - **Implemented in source:** read-only planner, five sample workload budgets, Linux PSI and swap telemetry, dashboard Resource Manager, scoped Star AI read-only status endpoint, automated tests.
-- **Not implemented:** real resource reservations, cgroup enforcement, auto-boot, persistent store, fair queueing, AI-triggered actions, orchestration integration, DDoS mitigation, Minecraft gameplay stack, Metallic social-game backend.
+- **Not implemented:** real resource reservations, cgroup enforcement, auto-boot, persistent store, fair queueing, AI-triggered actions, orchestration integration, DDoS mitigation, Minecraft gameplay stack, Metallic-RC social-game backend.
 - **Not performed:** modifications to either physical host, installation, production provisioning, opening ports or stopping a process.

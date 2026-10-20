@@ -4,7 +4,7 @@ Status: PROPOSED (2026-10-18). No live deployments or claimed benchmark gains.
 ## Boundary and legacy infrastructure
 "Old Servers" is the read-only integration label for existing Pterodactyl Wings workloads on alexbuz1. Never delete, restart, reconfigure, or migrate a legacy instance without inventory, tested backup/restore, and operator authorization. Treat the old panel/Wings API as a third-party trust boundary, not a system daemon controlled by Metallic. Begin with inventory and status only; optional authenticated API adapter follows.
 
-Star AI, Metallic social game, and Metallic MC run as distinct workload families, each with independently configured resource limits and credentials. "Separate container" means separate services/instances; one giant container per brand is not the target. Never imply containers alone are a full security boundary for customer-controlled mods.
+Star AI, Metallic-RC social game, and Metallic-MC run as distinct workload families, each with independently configured resource limits and credentials. "Separate container" means separate services/instances; one giant container per brand is not the target. Never imply containers alone are a full security boundary for customer-controlled mods.
 
 ## Hypotheses to test
 H1: CPU pressure (PSI), Linux cgroup statistics, and game MSPT percentiles predict imminent gameplay degradation better than host CPU-utilization alone.

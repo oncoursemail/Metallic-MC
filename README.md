@@ -1,10 +1,12 @@
-# METALLIC / Minecraft Network
+# Metallic-MC — Minecraft Network
+
+**Project naming:** [Metallic-RC / Metallic-MC / Metallic-RB / Metallic-PX](docs/PROJECT_IDENTITIES.md). Family domain: **Metallic.club** (application routing is not configured by this repository change).
 
 **Private, self-hosted Minecraft Java + Bedrock network infrastructure.**
 
-Metallic is being designed as a complete game network with a dedicated public edge, custom game services, a cluster control plane, observability, and an eventual hosting platform. It is intended to scale horizontally across hardware owned by Metallic.
+Metallic-MC is being designed as a complete game network with a dedicated public edge, custom game services, a cluster control plane, observability, and an eventual hosting platform. It is intended to scale horizontally across hardware owned by Metallic.
 
-> **Current stage: foundation prototype, not production deployment.** The repository includes a real read-only dashboard, a conservative resource-placement preview, an opt-in scoped Star AI status API, and a Linux metrics agent. It does **not** yet launch Minecraft instances, host games, implement DDoS protection, provide secure multi-tenancy, store telemetry persistently, or contain a custom Minecraft engine. A successful `go test` is not a game-server load benchmark.
+> **Current stage: private pilot tooling and control foundation.** The repository includes a real read-only dashboard, a conservative resource-placement preview, an opt-in scoped Star AI status API, a Linux metrics agent, optional persistent hosting policy, and a guarded local Minecraft pilot runner. A live Java/Bedrock login, public DDoS-protected edge, secure multi-tenancy, persistent telemetry and a custom Minecraft engine remain unverified or unimplemented. A successful `go test` is not a game-server load benchmark.
 
 ## Verified technical direction (October 2026)
 
@@ -20,7 +22,7 @@ Metallic is being designed as a complete game network with a dedicated public ed
 1. Authenticated **Metallic Control** web application with four functional pages: Overview, Compute Nodes, Game Services, Operations.
 2. A Linux **Metallic Agent** that sends real CPU, RAM, disk, load and system uptime metrics; can perform configured TCP reachability checks.
 3. Private-by-default local binding, authenticated agent heartbeat, rate-limited admin login, secure session cookies, body-size caps, CSP and response headers.
-4. Resource Manager page: preview placement of **Metallic MC**, **Metallic**, and **Star AI** workloads using real current node metrics and conservative headroom checks; no allocation is performed.
+4. Resource Manager page: preview placement of **Metallic-MC**, **Metallic-RC**, and **Star AI** workloads using real current node metrics and conservative headroom checks; no allocation is performed.
 5. Opt-in **Star AI read-only status API** under `/api/v1/ai/context`, using its own 24+ character token; disabled by default and exposes no credentials, local addresses or hostnames.
 6. Expanded Linux agent telemetry: logical CPU threads, PSI CPU and memory pressure, swap used/total, in addition to existing metrics.
 7. No fake sample player counts, no command-execution endpoint, no preloaded dummy servers, and no privileged remote agent operations.
@@ -35,7 +37,7 @@ Set `METALLIC_ARCHITECT_ENABLED=true` and open `/architect` after signing in to 
 - Read-only Hangar and Modrinth search and exact-version inspection with integrity/compatibility checks and explicit dependency blockers.
 - A restrained purple/silver interface for accounts, hardware and plugin inspection, with no fabricated downloads, public addresses or player statistics.
 
-The workbench is disabled by default and uses the existing private administrator, not public launcher accounts. Host state is in memory. A protected edge, native installer, isolated host executor, multi-user identity and public directory are later implementation gates.
+The workbench is disabled by default and uses the existing private administrator. Host state defaults to memory, with an optional private durable Linux store. A protected edge, native installer, isolated host executor, multi-user identity and public directory are later implementation gates.
 
 See the [workbench setup and API](docs/architect-workbench.md), [platform design and primary-source research](docs/architect-platform.md), [host policy contract](docs/hosting-agent-contract.md), and [plugin catalog contract](docs/plugin-catalog.md).
 
@@ -66,7 +68,7 @@ The resource planner is a **read-only what-if tool**; it does not book capacity 
 
 To give Star AI a separate read-only view, optionally generate `METALLIC_STARAI_READ_TOKEN` (minimum 24 characters; different from the agent token), keep it in a secret store, and send it with `GET /api/v1/ai/context` on a protected private HTTPS connection. It never grants command execution. See [Star AI integration](docs/star-ai-integration.md).
 
-Current limitations: no persisted sessions, nodes, metrics, auditing or RBAC; admin access is a single account; agent/service probes are TCP reachability only; Linux-only agent. See [Security](docs/security.md) before enabling remote connections.
+Current limitations: no persisted sessions, nodes, metrics, audit log or RBAC; admin access is a single account; agent/service probes are TCP reachability only; Linux-only agent. See [Security](docs/security.md) before enabling remote connections.
 
 ```bash
 go test -race ./...
@@ -74,6 +76,18 @@ go vet ./...
 go build ./cmd/metallic-control
 go build ./cmd/metallic-agent
 ```
+
+## Private pilot and restart recovery
+
+The repository now includes an executable [private Java/Bedrock pilot](docs/private-pilot.md): four pinned upstream artifacts, generated loopback-only proxy/backend configurations, authenticated modern forwarding, an owner-managed whitelist, resource/port admission checks, and supervised graceful shutdown. It prepares a hub and a separate game world. The tool does not accept Minecraft terms, choose a public ingress provider, or establish a completed Java/Bedrock login test.
+
+Architect can optionally keep its host registry in a [private durable Linux store](docs/hosting-persistence.md). Set `METALLIC_HOSTING_STORE_PATH` only with Architect enabled. Host registrations, credential digests, revocations and allocation plans survive controller restart. Pending pairing tickets, administrator sessions and live telemetry remain ephemeral; nodes need fresh authenticated heartbeats. Unavailable or corrupt state stops startup instead of resetting permissions.
+
+The [service recovery bundle](docs/service-recovery.md) prepares checksum-verified controller and telemetry binaries for dedicated Linux service accounts, private configuration, bounded restart and resource limits, graceful shutdown, and explicit rollback. Installation and enabling are separate steps. It manages only its own two services and never changes Wings or Old Servers. The pilot also supports compact backups while fully stopped and verified restoration into a new directory.
+
+The integrated backend also observes Linux I/O pressure and uses it in placement previews. Background learning is deferred when I/O pressure is unknown. Legacy Wings observation reads process names only. The moderation package provides tested authorization decisions; it does not execute live sanctions or server operations.
+
+These capabilities are development/staging code. See the dated [integration and validation record](docs/completion-2026-10-20.md) for what was actually run and the remaining public-launch gates.
 
 ## Repository layout
 
@@ -90,7 +104,7 @@ docs/benchmarks.md       Test methodology, profiling and release gates
 docs/roadmap.md          Versioned implementation phases and product vision
 docs/hardware.md         Your physical-server discovery worksheet
 docs/hardware-snapshot.md Sanitized read-only inventory of your two connected machines
-docs/shared-platform.md  Shared Star AI / Metallic / Metallic MC architecture and scheduler choices
+docs/shared-platform.md  Shared Star AI / Metallic-RC / Metallic-MC architecture and scheduler choices
 docs/star-ai-integration.md Scoped AI status API and safe in-game AI integration architecture
 infra/                   Future edge, proxy, node and telemetry deployment manifests
 ```

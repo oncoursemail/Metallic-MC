@@ -34,7 +34,7 @@ func (c *Controller) architectHosts(w http.ResponseWriter, r *http.Request) {
 		hostingError(w, err)
 		return
 	}
-	jsonReply(w, http.StatusOK, map[string]any{"hosts": hosts, "persistent": false})
+	jsonReply(w, http.StatusOK, map[string]any{"hosts": hosts, "persistent": c.hosts.Persistent()})
 }
 func (c *Controller) architectServers(w http.ResponseWriter, r *http.Request) {
 	servers, err := c.hosts.ListServers(c.cfg.AdminUser)
@@ -110,6 +110,8 @@ func (c *Controller) architectRoute(w http.ResponseWriter, r *http.Request) {
 func hostingError(w http.ResponseWriter, err error) {
 	status := http.StatusBadRequest
 	switch {
+	case errors.Is(err, hosting.ErrStore):
+		status = http.StatusServiceUnavailable
 	case errors.Is(err, hosting.ErrUnauthorized), errors.Is(err, hosting.ErrExpired), errors.Is(err, hosting.ErrRevoked):
 		status = http.StatusUnauthorized
 	case errors.Is(err, hosting.ErrNotFound):

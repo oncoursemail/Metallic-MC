@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -185,6 +186,32 @@ func pressureSome10(path string) (float64, error) {
 	return 0, errors.New("no PSI some avg10 reading")
 }
 
+// observeLegacyProcess checks process names without reading arguments, credentials,
+// Pterodactyl configuration, or server data. A negative result means "not observed",
+// not proof that the old management panel has no running containers.
+func observeLegacyProcess(procRoot, command string) (bool, error) {
+	entries, err := os.ReadDir(procRoot)
+	if err != nil {
+		return false, err
+	}
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		if _, err := strconv.ParseUint(e.Name(), 10, 32); err != nil {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(procRoot, e.Name(), "comm"))
+		if err != nil {
+			continue
+		} // some processes are owned by another user
+		if strings.TrimSpace(string(data)) == command {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // ParseServices expects name@host:port entries. Entries are never executed as commands.
 func ParseServices(value string) ([]control.Instance, error) {
 	if strings.TrimSpace(value) == "" {
@@ -256,6 +283,8 @@ func Sample(ctx context.Context, nodeID, hostname, diskPath string, services []c
 	}
 	cpuPSI, cpuErr := pressureSome10("/proc/pressure/cpu")
 	memoryPSI, memErr := pressureSome10("/proc/pressure/memory")
+	ioPSI, ioErr := pressureSome10("/proc/pressure/io")
+	wingsObserved, wingsErr := observeLegacyProcess("/proc", "wings")
 	// Some sandboxed hosts omit PSI files. Keep reporting telemetry, but
 	// explicitly mark pressure as unknown so placement remains fail-closed.
 	pressureAvailable := cpuErr == nil && memErr == nil
@@ -265,8 +294,12 @@ func Sample(ctx context.Context, nodeID, hostname, diskPath string, services []c
 	if memErr != nil && !errors.Is(memErr, os.ErrNotExist) {
 		return control.Heartbeat{}, fmt.Errorf("memory PSI sample: %w", memErr)
 	}
+	if ioErr != nil && !errors.Is(ioErr, os.ErrNotExist) {
+		return control.Heartbeat{}, fmt.Errorf("I/O PSI sample: %w", ioErr)
+	}
 	return control.Heartbeat{NodeID: nodeID, Hostname: hostname, CPUPercent: cpu,
-		CPUThreads: uint32(runtime.NumCPU()), CPUPressureSome10: cpuPSI, MemPressureSome10: memoryPSI, PressureAvailable: pressureAvailable,
+		CPUThreads: uint32(runtime.NumCPU()), CPUPressureSome10: cpuPSI, MemPressureSome10: memoryPSI, PressureAvailable: pressureAvailable, IOPressureSome10: ioPSI, IOPressureAvailable: ioErr == nil,
+		LegacyWingsObserved: wingsObserved, LegacyWingsChecked: wingsErr == nil,
 		MemoryUsed: memUsed, MemoryTotal: memTotal, SwapTotal: swapTotal, SwapUsed: swapTotal - swapFree,
 		DiskUsed: diskUsed, DiskTotal: diskTotal, Load1: load, UptimeSeconds: uptime,
 		Instances: ProbeServices(ctx, services)}, nil

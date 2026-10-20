@@ -26,9 +26,9 @@ type Profile struct {
 // Workload profiles are ONLY what-if templates, never proof of player capacity.
 // The memory budget represents total container memory including JVM native overhead.
 var profiles = []Profile{
-	{ID: "mc-lobby", Name: "Minecraft lobby", Project: "Metallic MC", Class: "realtime", CPUMilli: 2000, MemoryBytes: 4 * GiB, DiskBytes: 8 * GiB, Description: "One Paper lobby; deliberately conservative example budget."},
-	{ID: "mc-match", Name: "Minecraft match", Project: "Metallic MC", Class: "realtime", CPUMilli: 3000, MemoryBytes: 6 * GiB, DiskBytes: 10 * GiB, Description: "A single independently managed minigame instance."},
-	{ID: "metallic-world", Name: "Metallic game world", Project: "Metallic", Class: "realtime", CPUMilli: 4000, MemoryBytes: 8 * GiB, DiskBytes: 12 * GiB, Description: "Example persistent social-world service, not an engine benchmark."},
+	{ID: "mc-lobby", Name: "Minecraft lobby", Project: "Metallic-MC", Class: "realtime", CPUMilli: 2000, MemoryBytes: 4 * GiB, DiskBytes: 8 * GiB, Description: "One Paper lobby; deliberately conservative example budget."},
+	{ID: "mc-match", Name: "Minecraft match", Project: "Metallic-MC", Class: "realtime", CPUMilli: 3000, MemoryBytes: 6 * GiB, DiskBytes: 10 * GiB, Description: "A single independently managed minigame instance."},
+	{ID: "metallic-world", Name: "Metallic-RC game world", Project: "Metallic-RC", Class: "realtime", CPUMilli: 4000, MemoryBytes: 8 * GiB, DiskBytes: 12 * GiB, Description: "Example persistent social-world service, not an engine benchmark."},
 	{ID: "star-inference", Name: "Star AI inference", Project: "Star AI", Class: "standard", CPUMilli: 3000, MemoryBytes: 8 * GiB, DiskBytes: 4 * GiB, Description: "Example model-serving slice; actual model memory varies considerably."},
 	{ID: "star-learning", Name: "Star AI background learning", Project: "Star AI", Class: "batch", CPUMilli: 6000, MemoryBytes: 12 * GiB, DiskBytes: 12 * GiB, Preemptible: true, Description: "Deferrable practice job; only preview when host has spare resources."},
 }
@@ -44,20 +44,22 @@ func FindProfile(id string) (Profile, bool) {
 }
 
 type Host struct {
-	ID                string  `json:"id"`
-	Online            bool    `json:"online"`
-	CPUThreads        uint32  `json:"cpuThreads"`
-	CPUPercent        float64 `json:"cpuPercent"`
-	Load1             float64 `json:"load1"`
-	CPUPressureSome10 float64 `json:"cpuPressureSome10"`
-	MemPressureSome10 float64 `json:"memPressureSome10"`
-	PressureAvailable bool    `json:"pressureAvailable"`
-	MemoryTotal       uint64  `json:"memoryTotal"`
-	MemoryUsed        uint64  `json:"memoryUsed"`
-	DiskTotal         uint64  `json:"diskTotal"`
-	DiskUsed          uint64  `json:"diskUsed"`
-	SwapTotal         uint64  `json:"swapTotal"`
-	SwapUsed          uint64  `json:"swapUsed"`
+	ID                  string  `json:"id"`
+	Online              bool    `json:"online"`
+	CPUThreads          uint32  `json:"cpuThreads"`
+	CPUPercent          float64 `json:"cpuPercent"`
+	Load1               float64 `json:"load1"`
+	CPUPressureSome10   float64 `json:"cpuPressureSome10"`
+	MemPressureSome10   float64 `json:"memPressureSome10"`
+	IOPressureSome10    float64 `json:"ioPressureSome10"`
+	IOPressureAvailable bool    `json:"ioPressureAvailable"`
+	PressureAvailable   bool    `json:"pressureAvailable"`
+	MemoryTotal         uint64  `json:"memoryTotal"`
+	MemoryUsed          uint64  `json:"memoryUsed"`
+	DiskTotal           uint64  `json:"diskTotal"`
+	DiskUsed            uint64  `json:"diskUsed"`
+	SwapTotal           uint64  `json:"swapTotal"`
+	SwapUsed            uint64  `json:"swapUsed"`
 }
 
 type Candidate struct {
@@ -128,6 +130,14 @@ func assess(n Host, p Profile) Candidate {
 		}
 		if n.MemPressureSome10 > 2 {
 			r.Reasons = append(r.Reasons, "Memory pressure is elevated")
+		}
+		// Linux PSI measures time spent stalled rather than utilization.
+		// A reported I/O bottleneck is relevant even with free CPU and RAM.
+		if n.IOPressureAvailable && (!validPercent(n.IOPressureSome10) || n.IOPressureSome10 > 5) {
+			r.Reasons = append(r.Reasons, "I/O pressure is elevated or invalid")
+		}
+		if p.Class == "batch" && !n.IOPressureAvailable {
+			r.Reasons = append(r.Reasons, "I/O pressure unknown; defer background learning")
 		}
 		// Reserve at least one complete logical core for OS and unscheduled work.
 		spare := float64(n.CPUThreads) * (cpuCeiling - n.CPUPercent) * 10

@@ -25,6 +25,7 @@ async function loadHosts(){
  const [hostData,serverData]=await Promise.all([api('hosts'),api('servers')]);
  const list=byId('host-list'),select=byId('allocation-host'),previous=select.value;
  list.replaceChildren();select.replaceChildren(new Option('Choose a paired host',''));
+ byId('host-persistence').textContent=hostData.persistent?'Host registrations and allocation plans are saved. Pairing tickets expire when the controller restarts.':'Host storage is temporary. Restarting the controller requires pairing again.';
  const hosts=hostData.hosts||[];
  if(!hosts.length)list.append(node('p','empty','No hosts paired. Create a ticket to prepare your first host.'));
  for(const host of hosts){

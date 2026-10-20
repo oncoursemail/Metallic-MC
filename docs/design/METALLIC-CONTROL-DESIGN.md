@@ -1,5 +1,5 @@
 # Metallic Control — design direction v2
-Status: DESIGN SPECIFICATION, not a finished UI. Applies to Metallic MC management and future shared infrastructure control.
+Status: DESIGN SPECIFICATION, not a finished UI. Applies to Metallic-MC management and future shared infrastructure control.
 
 ## Design thesis
 "Precision hardware instrumentation meets a premium game studio tool." Build a credible professional workstation, NOT the default AI SaaS template. Avoid excessive rounded cards, arbitrary neon gradients/glow, glassmorphism, glowing purple borders, stock icons, emoji badges, gigantic KPIs without provenance, fake sparklines, marketing-style sidebar menus or the same four-column grid on every page.

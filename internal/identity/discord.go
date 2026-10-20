@@ -105,8 +105,9 @@ func decodeBounded(res *http.Response, out any) error {
 
 // Resolve uses only identify, verifies /users/@me, and revokes the resulting
 // authorization. No access or refresh token is returned to the caller or stored.
-// Even a failed profile lookup attempts revocation using a separately bounded
-// context, so a cancelled browser request does not skip cleanup.
+// Any usable token recovered by bounded decoding is revoked even if the rest of
+// the response is rejected. Cleanup uses a separately bounded context so a
+// cancelled browser request does not skip it.
 func (d *Discord) Resolve(ctx context.Context, code, verifier string) (profile Profile, err error) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
@@ -122,10 +123,8 @@ func (d *Discord) Resolve(ctx context.Context, code, verifier string) (profile P
 		TokenType   string `json:"token_type"`
 		Scope       string `json:"scope"`
 	}
-	if decodeBounded(res, &grant) != nil {
-		return Profile{}, ErrUnavailable
-	}
-	if grant.AccessToken == "" || len(grant.AccessToken) > 4096 {
+	decodeErr := decodeBounded(res, &grant)
+	if !validBearerToken(grant.AccessToken) {
 		return Profile{}, ErrUnavailable
 	}
 	defer func() {
@@ -143,7 +142,7 @@ func (d *Discord) Resolve(ctx context.Context, code, verifier string) (profile P
 			err = ErrUnavailable
 		}
 	}()
-	if !strings.EqualFold(grant.TokenType, "Bearer") || !containsScope(grant.Scope, "identify") {
+	if decodeErr != nil || !strings.EqualFold(grant.TokenType, "Bearer") || !containsScope(grant.Scope, "identify") {
 		return Profile{}, ErrUnavailable
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discordUser, nil)
@@ -161,6 +160,34 @@ func (d *Discord) Resolve(ctx context.Context, code, verifier string) (profile P
 		return Profile{}, ErrUnavailable
 	}
 	return profile, nil
+}
+
+// RFC 6750 section 2.1 permits the b64token alphabet with trailing '=' padding.
+// Reject malformed tokens before they reach either an Authorization header or
+// revocation form, including whitespace, controls and non-ASCII characters.
+func validBearerToken(token string) bool {
+	if len(token) == 0 || len(token) > 4096 {
+		return false
+	}
+	padding := false
+	for i := 0; i < len(token); i++ {
+		c := token[i]
+		if c == '=' {
+			if i == 0 {
+				return false
+			}
+			padding = true
+			continue
+		}
+		if padding {
+			return false
+		}
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || strings.ContainsRune("-._~+/", rune(c)) {
+			continue
+		}
+		return false
+	}
+	return true
 }
 
 func containsScope(list, want string) bool {

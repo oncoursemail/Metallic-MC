@@ -1,4 +1,5 @@
-// Package hosting implements an in-memory BYOH enrollment and routing policy.
+// Package hosting implements BYOH enrollment and routing policy with optional
+// private, single-process durable storage.
 // It does not start servers, authenticate players, open listeners, or relay traffic.
 package hosting
 
@@ -15,6 +16,7 @@ import (
 	"sync"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
 var (
@@ -25,6 +27,7 @@ var (
 	ErrRevoked       = errors.New("host credential revoked")
 	ErrLimitExceeded = errors.New("hosting capacity limit exceeded")
 	ErrConflict      = errors.New("hosting resource already registered")
+	ErrStore         = errors.New("hosting store unavailable")
 )
 
 type Config struct {
@@ -97,14 +100,18 @@ type hostRecord struct {
 	credentialDigest [32]byte
 }
 
-// Service is safe for concurrent use. All state is lost on process restart.
+// Service is safe for concurrent use. NewService is memory-only; NewPersistent
+// preserves enrolled hosts, credential digests, revocations and allocations.
 // Revoked and expired hosts remain bounded records; there is no renewal or deletion.
 type Service struct {
-	mu      sync.Mutex
-	cfg     Config
-	tickets map[[32]byte]pairingRecord
-	hosts   map[string]*hostRecord
-	servers map[string]ServerAllocation
+	mu          sync.Mutex
+	cfg         Config
+	tickets     map[[32]byte]pairingRecord
+	hosts       map[string]*hostRecord
+	servers     map[string]ServerAllocation
+	store       durableStore
+	closed      bool
+	storeFailed bool
 }
 
 func DefaultConfig() Config {
@@ -162,6 +169,9 @@ func (s *Service) IssuePairingTicket(ownerID string) (PairingTicket, error) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if err := s.availableLocked(); err != nil {
+		return PairingTicket{}, err
+	}
 	now := s.cfg.Now()
 	for digest, ticket := range s.tickets {
 		if !now.Before(ticket.expiresAt) {
@@ -199,6 +209,9 @@ func (s *Service) RedeemPairingTicket(ownerID, ticket, hostName string) (Enrollm
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if err := s.availableLocked(); err != nil {
+		return Enrollment{}, err
+	}
 	record, exists := s.tickets[digest]
 	if !exists || subtle.ConstantTimeCompare(record.digest[:], digest[:]) != 1 || record.ownerID != ownerID {
 		return Enrollment{}, ErrUnauthorized
@@ -229,8 +242,13 @@ func (s *Service) RedeemPairingTicket(ownerID, ticket, hostName string) (Enrollm
 	if err != nil {
 		return Enrollment{}, err
 	}
-	host := Host{ID: hostID, OwnerID: ownerID, Name: hostName, CreatedAt: now, CredentialExpiresAt: now.Add(s.cfg.CredentialTTL)}
-	s.hosts[hostID] = &hostRecord{host: host, credentialDigest: sha256.Sum256([]byte(credential))}
+	host := Host{ID: hostID, OwnerID: ownerID, Name: hostName, CreatedAt: now.UTC(), CredentialExpiresAt: now.Add(s.cfg.CredentialTTL).UTC()}
+	next := copyHosts(s.hosts)
+	next[hostID] = &hostRecord{host: host, credentialDigest: sha256.Sum256([]byte(credential))}
+	if err := s.persistLocked(next, s.servers); err != nil {
+		return Enrollment{}, err
+	}
+	s.hosts = next
 	delete(s.tickets, digest)
 	return Enrollment{Host: host, Credential: credential}, nil
 }
@@ -240,6 +258,9 @@ func (s *Service) ListHosts(ownerID string) ([]Host, error) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if err := s.availableLocked(); err != nil {
+		return nil, err
+	}
 	result := make([]Host, 0)
 	for _, record := range s.hosts {
 		if record.host.OwnerID == ownerID {
@@ -255,11 +276,24 @@ func (s *Service) RevokeHost(ownerID, hostID string) error {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if err := s.availableLocked(); err != nil {
+		return err
+	}
 	record, exists := s.hosts[hostID]
 	if !exists || record.host.OwnerID != ownerID {
 		return ErrNotFound
 	}
-	record.host.Revoked = true
+	if record.host.Revoked {
+		return nil
+	}
+	next := copyHosts(s.hosts)
+	revoked := *record
+	revoked.host.Revoked = true
+	next[hostID] = &revoked
+	if err := s.persistLocked(next, s.servers); err != nil {
+		return err
+	}
+	s.hosts = next
 	return nil
 }
 
@@ -271,6 +305,9 @@ func (s *Service) AllocateServer(ownerID string, request AllocationRequest) (Ser
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if err := s.availableLocked(); err != nil {
+		return ServerAllocation{}, err
+	}
 	host, exists := s.hosts[request.HostID]
 	if !exists || host.host.OwnerID != ownerID {
 		return ServerAllocation{}, ErrNotFound
@@ -301,8 +338,13 @@ func (s *Service) AllocateServer(ownerID string, request AllocationRequest) (Ser
 	if !resourcesFit(request.Resources, used, s.cfg.MaxResources) {
 		return ServerAllocation{}, ErrLimitExceeded
 	}
-	allocation := ServerAllocation{ID: request.ServerID, OwnerID: ownerID, HostID: request.HostID, Resources: request.Resources, GamePort: request.GamePort, CreatedAt: now, State: "policy_registered"}
-	s.servers[allocation.ID] = allocation
+	allocation := ServerAllocation{ID: request.ServerID, OwnerID: ownerID, HostID: request.HostID, Resources: request.Resources, GamePort: request.GamePort, CreatedAt: now.UTC(), State: "policy_registered"}
+	next := copyServers(s.servers)
+	next[allocation.ID] = allocation
+	if err := s.persistLocked(s.hosts, next); err != nil {
+		return ServerAllocation{}, err
+	}
+	s.servers = next
 	return allocation, nil
 }
 func (s *Service) ListServers(ownerID string) ([]ServerAllocation, error) {
@@ -311,6 +353,9 @@ func (s *Service) ListServers(ownerID string) ([]ServerAllocation, error) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if err := s.availableLocked(); err != nil {
+		return nil, err
+	}
 	result := make([]ServerAllocation, 0)
 	for _, allocation := range s.servers {
 		if allocation.OwnerID == ownerID {
@@ -337,6 +382,9 @@ func (s *Service) PlanRoute(ownerID, hostCredential string, request RouteRequest
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if err := s.availableLocked(); err != nil {
+		return RouteDecision{}, err
+	}
 	host, exists := s.hosts[request.HostID]
 	if !exists || host.host.OwnerID != ownerID {
 		return RouteDecision{}, ErrNotFound
@@ -389,7 +437,7 @@ func tokenDigest(token, prefix string) ([32]byte, bool) {
 }
 func validOwner(ownerID string) bool { return validText(ownerID, 128) }
 func validText(value string, max int) bool {
-	return len(value) > 0 && len(value) <= max && strings.TrimSpace(value) == value && strings.IndexFunc(value, unicode.IsControl) < 0
+	return len(value) > 0 && len(value) <= max && utf8.ValidString(value) && strings.TrimSpace(value) == value && strings.IndexFunc(value, unicode.IsControl) < 0
 }
 func validIdentifier(value string) bool {
 	if len(value) < 1 || len(value) > 64 {

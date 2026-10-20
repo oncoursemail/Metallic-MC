@@ -1,4 +1,4 @@
-# Metallic MC and Star AI: engineering brief
+# Metallic-MC and Star AI: engineering brief
 
 Prepared for Alex Fisher. Research and limited read-only observations: 19 October 2026 UTC. Implementation author: ChatGPT, working against the existing private repositories. This brief distinguishes implemented candidates, observed facts, engineering proposals, and deployment prerequisites. Pricing is public advertising on the research date, not a purchase or an account-specific quote.
 

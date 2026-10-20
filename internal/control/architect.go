@@ -75,7 +75,8 @@ func (c *Controller) architectPage(w http.ResponseWriter, r *http.Request) {
 }
 func (c *Controller) architectCapabilities(w http.ResponseWriter, r *http.Request) {
 	jsonReply(w, http.StatusOK, map[string]any{
-		"product": "Metallic Architect", "stage": "private-foundation",
+		"product": "Metallic-MC Architect", "stage": "private-foundation",
+		"hostingPersistent": c.hosts.Persistent(),
 		"discordConfigured": c.discord != nil, "publicAccountService": false,
 		"hostingExecution": false, "publicRelayDeployed": false,
 		"pluginExecution": false, "minecraftAuthenticationConfigured": false,

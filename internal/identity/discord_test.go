@@ -2,6 +2,7 @@ package identity
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 type roundTripFunc func(*http.Request) (*http.Response, error)
@@ -159,5 +161,139 @@ func TestRejectsUnsafeCallbackConfiguration(t *testing.T) {
 		if _, err := NewDiscord(cfg); err != nil {
 			t.Fatalf("loopback %v", err)
 		}
+	}
+}
+
+func TestMalformedTokenResponseStillRevokesRecoveredToken(t *testing.T) {
+	for name, body := range map[string]string{
+		"trailing-json":   `{"access_token":"fixture-access","token_type":"Bearer","scope":"identify"} {}`,
+		"trailing-text":   `{"access_token":"fixture-access","token_type":"Bearer","scope":"identify"} rejected-upstream-body`,
+		"scope-type":      `{"access_token":"fixture-access","token_type":"Bearer","scope":123}`,
+		"token-type-type": `{"access_token":"fixture-access","token_type":[],"scope":"identify"}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			for _, cancelBrowser := range []bool{false, true} {
+				ctx, cancel := context.WithCancel(context.Background())
+				var requests, revocations int
+				rt := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+					requests++
+					switch r.URL.String() {
+					case discordToken:
+						res := response(http.StatusOK, body)
+						if cancelBrowser {
+							res.Body = &cancelOnCloseBody{ReadCloser: res.Body, cancel: cancel}
+						}
+						return res, nil
+					case discordRevoke:
+						revocations++
+						deadline, bounded := r.Context().Deadline()
+						if r.Context().Err() != nil || !bounded || time.Until(deadline) > 3*time.Second {
+							t.Fatal("cleanup reused a cancelled or unbounded browser context")
+						}
+						if err := r.ParseForm(); err != nil {
+							t.Fatal(err)
+						}
+						if r.Form.Get("token") != "fixture-access" || r.Form.Get("token_type_hint") != "access_token" {
+							t.Fatal("cleanup did not revoke the recovered token")
+						}
+						return response(http.StatusOK, "{}"), nil
+					default:
+						t.Fatal("a malformed token response reached the profile endpoint")
+						return nil, ErrUnavailable
+					}
+				})
+				d, err := NewDiscord(configWithTransport(rt))
+				if err != nil {
+					t.Fatal(err)
+				}
+				profile, err := d.Resolve(ctx, "code", "verifier")
+				cancel()
+				if profile != (Profile{}) || !errors.Is(err, ErrUnavailable) || strings.Contains(err.Error(), "fixture-access") || strings.Contains(err.Error(), "rejected-upstream-body") {
+					t.Fatal("malformed token response did not return an empty, redacted failure")
+				}
+				if requests != 2 || revocations != 1 {
+					t.Fatalf("requests=%d, revocations=%d, cancelled=%v", requests, revocations, cancelBrowser)
+				}
+			}
+		})
+	}
+}
+
+type cancelOnCloseBody struct {
+	io.ReadCloser
+	cancel context.CancelFunc
+}
+
+func (b *cancelOnCloseBody) Close() error {
+	err := b.ReadCloser.Close()
+	b.cancel()
+	return err
+}
+
+func TestMalformedBearerTokensAreNotForwarded(t *testing.T) {
+	for name, token := range map[string]string{
+		"empty": "", "oversized": strings.Repeat("a", 4097),
+		"crlf": "fixture\r\nInjected: value", "nul": "fixture\x00", "tab": "fixture\taccess",
+		"space": "fixture access", "delete": "fixture\x7f", "unicode": "fixture-é",
+		"comma": "fixture,access", "padding-only": "==", "middle-padding": "fixture=access",
+	} {
+		t.Run(name, func(t *testing.T) {
+			body, err := json.Marshal(map[string]string{"access_token": token, "token_type": "Bearer", "scope": "identify"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			var requests int
+			rt := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+				requests++
+				if r.URL.String() != discordToken {
+					t.Fatal("malformed token was forwarded to a downstream endpoint")
+				}
+				return response(http.StatusOK, string(body)), nil
+			})
+			d, err := NewDiscord(configWithTransport(rt))
+			if err != nil {
+				t.Fatal(err)
+			}
+			profile, err := d.Resolve(context.Background(), "code", "verifier")
+			if profile != (Profile{}) || !errors.Is(err, ErrUnavailable) || err.Error() != ErrUnavailable.Error() || requests != 1 {
+				t.Fatal("malformed token was not rejected without disclosure or forwarding")
+			}
+		})
+	}
+}
+
+func TestBearerAlphabetAndPaddingPreserveNormalFlow(t *testing.T) {
+	const token = "fixture.AZ09-_~+/=="
+	var requests int
+	rt := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		requests++
+		switch r.URL.String() {
+		case discordToken:
+			return response(http.StatusOK, `{"access_token":"`+token+`","token_type":"Bearer","scope":"identify"}`), nil
+		case discordUser:
+			if r.Header.Get("Authorization") != "Bearer "+token {
+				t.Fatal("valid bearer token changed in the profile header")
+			}
+			return response(http.StatusOK, `{"id":"123456789012345678","username":"alex"}`), nil
+		case discordRevoke:
+			if err := r.ParseForm(); err != nil {
+				t.Fatal(err)
+			}
+			if r.Form.Get("token") != token {
+				t.Fatal("valid bearer token changed in the revocation form")
+			}
+			return response(http.StatusOK, "{}"), nil
+		default:
+			t.Fatal("unexpected provider endpoint")
+			return nil, ErrUnavailable
+		}
+	})
+	d, err := NewDiscord(configWithTransport(rt))
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile, err := d.Resolve(context.Background(), "code", "verifier")
+	if err != nil || profile.ID != "123456789012345678" || requests != 3 {
+		t.Fatal("valid bearer alphabet or padding broke the normal linking flow")
 	}
 }

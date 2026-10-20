@@ -48,22 +48,26 @@ type Instance struct {
 	Healthy bool   `json:"healthy"`
 }
 type Heartbeat struct {
-	NodeID            string     `json:"nodeId"`
-	Hostname          string     `json:"hostname"`
-	CPUPercent        float64    `json:"cpuPercent"`
-	CPUThreads        uint32     `json:"cpuThreads"`
-	CPUPressureSome10 float64    `json:"cpuPressureSome10"`
-	PressureAvailable bool       `json:"pressureAvailable"`
-	MemPressureSome10 float64    `json:"memPressureSome10"`
-	SwapTotal         uint64     `json:"swapTotal"`
-	SwapUsed          uint64     `json:"swapUsed"`
-	MemoryUsed        uint64     `json:"memoryUsed"`
-	MemoryTotal       uint64     `json:"memoryTotal"`
-	DiskUsed          uint64     `json:"diskUsed"`
-	DiskTotal         uint64     `json:"diskTotal"`
-	Load1             float64    `json:"load1"`
-	UptimeSeconds     uint64     `json:"uptimeSeconds"`
-	Instances         []Instance `json:"instances"`
+	NodeID              string     `json:"nodeId"`
+	Hostname            string     `json:"hostname"`
+	CPUPercent          float64    `json:"cpuPercent"`
+	CPUThreads          uint32     `json:"cpuThreads"`
+	CPUPressureSome10   float64    `json:"cpuPressureSome10"`
+	PressureAvailable   bool       `json:"pressureAvailable"`
+	MemPressureSome10   float64    `json:"memPressureSome10"`
+	IOPressureSome10    float64    `json:"ioPressureSome10"`
+	IOPressureAvailable bool       `json:"ioPressureAvailable"`
+	LegacyWingsObserved bool       `json:"legacyWingsObserved"`
+	LegacyWingsChecked  bool       `json:"legacyWingsChecked"`
+	SwapTotal           uint64     `json:"swapTotal"`
+	SwapUsed            uint64     `json:"swapUsed"`
+	MemoryUsed          uint64     `json:"memoryUsed"`
+	MemoryTotal         uint64     `json:"memoryTotal"`
+	DiskUsed            uint64     `json:"diskUsed"`
+	DiskTotal           uint64     `json:"diskTotal"`
+	Load1               float64    `json:"load1"`
+	UptimeSeconds       uint64     `json:"uptimeSeconds"`
+	Instances           []Instance `json:"instances"`
 }
 type Sample struct {
 	At         time.Time `json:"at"`
@@ -292,7 +296,7 @@ func validHeartbeat(h Heartbeat) bool {
 	if !validID.MatchString(h.NodeID) || len(h.Hostname) == 0 || len(h.Hostname) > 128 {
 		return false
 	}
-	if !okPercent(h.CPUPercent) || !okMetric(h.Load1) || !okPercent(h.CPUPressureSome10) || !okPercent(h.MemPressureSome10) || h.CPUThreads > 512 || h.MemoryUsed > h.MemoryTotal || h.DiskUsed > h.DiskTotal || h.SwapUsed > h.SwapTotal || len(h.Instances) > 64 {
+	if !okPercent(h.CPUPercent) || !okMetric(h.Load1) || !okPercent(h.CPUPressureSome10) || !okPercent(h.MemPressureSome10) || !okPercent(h.IOPressureSome10) || h.CPUThreads > 512 || h.MemoryUsed > h.MemoryTotal || h.DiskUsed > h.DiskTotal || h.SwapUsed > h.SwapTotal || len(h.Instances) > 64 {
 		return false
 	}
 	for _, i := range h.Instances {
@@ -340,7 +344,7 @@ func (c *Controller) snapshotHosts() []resources.Host {
 		hosts = append(hosts, resources.Host{
 			ID: id, Online: now.Sub(entry.seen) >= 0 && now.Sub(entry.seen) < 35*time.Second,
 			CPUThreads: h.CPUThreads, CPUPercent: h.CPUPercent, Load1: h.Load1,
-			CPUPressureSome10: h.CPUPressureSome10, MemPressureSome10: h.MemPressureSome10, PressureAvailable: h.PressureAvailable,
+			CPUPressureSome10: h.CPUPressureSome10, MemPressureSome10: h.MemPressureSome10, PressureAvailable: h.PressureAvailable, IOPressureSome10: h.IOPressureSome10, IOPressureAvailable: h.IOPressureAvailable,
 			MemoryTotal: h.MemoryTotal, MemoryUsed: h.MemoryUsed,
 			DiskTotal: h.DiskTotal, DiskUsed: h.DiskUsed,
 			SwapTotal: h.SwapTotal, SwapUsed: h.SwapUsed,

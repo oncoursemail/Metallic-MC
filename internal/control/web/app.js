@@ -13,8 +13,7 @@ function element(tag, className, text) {const el=document.createElement(tag);if(
 function emptyState(title, subtitle) {const wrap=element('div','empty-state');wrap.append(element('div','empty-icon','⌁'),element('strong','',title),element('p','',subtitle));return wrap;}
 function status(isOK,label) {const e=element('span','state-pill '+(isOK?'state-ok':'state-down'));e.append(element('span','tiny-dot'),document.createTextNode(label));return e;}
 function row(title,sub,ok,last) {const e=element('div','list-item');const left=element('div','list-details');left.append(element('strong','',title),element('small','',sub));e.append(left,status(ok,last));return e;}
-function showPane(pane) { if(!navLabels[pane])return;document.querySelectorAll('[data-pane]').forEach(el=>el.classList.toggle('hidden',el.dataset.pane!==pane));$('resource-profile')?.addEventListener('change',e=>{resourceProfileId=e.target.value;updateResources();});
-document.querySelectorAll('[data-nav]').forEach(el=>el.classList.toggle('active',el.dataset.nav===pane));setText('page-label',navLabels[pane]);}
+function showPane(pane) { if(!navLabels[pane])return;document.querySelectorAll('[data-pane]').forEach(el=>el.classList.toggle('hidden',el.dataset.pane!==pane));document.querySelectorAll('[data-nav]').forEach(el=>el.classList.toggle('active',el.dataset.nav===pane));setText('page-label',navLabels[pane]);}
 function ui() {
  const nodes=latest.nodes||[];
  const online=nodes.filter(n=>n.online);
@@ -107,6 +106,7 @@ async function updateResources() {
 async function update() { try {const res=await fetch('/api/v1/overview',{cache:'no-store',credentials:'same-origin'});if(res.status===401){location.href='/login';return;}if(!res.ok)throw new Error('HTTP '+res.status);latest=await res.json();setText('api-state','Control API connected');$('api-state').className='mini-indicator connected';setText('updated-at','SYNCED '+new Date().toLocaleTimeString());ui();await updateResources();}catch(err){setText('api-state','API unavailable');$('api-state').className='mini-indicator disconnected';setText('updated-at','Latest data may be stale');}}
 document.querySelectorAll('[data-nav]').forEach(e=>e.addEventListener('click',()=>showPane(e.dataset.nav)));
 document.querySelectorAll('[data-target]').forEach(e=>e.addEventListener('click',()=>showPane(e.dataset.target)));
+$('resource-profile')?.addEventListener('change',e=>{resourceProfileId=e.target.value;updateResources();});
 update();setInterval(update,10000);
 
 fetch("/api/v1/architect/capabilities",{credentials:"same-origin"}).then(r=>{if(r.ok)document.getElementById("architect-link").hidden=false;}).catch(()=>{});

@@ -12,11 +12,11 @@ METALLIC_ARCHITECT_ENABLED=true
 
 Run `go run ./cmd/metallic-control`, sign in, and open `/architect`. The infrastructure sidebar shows an Architect link only when the feature is enabled. Host policy and catalog inspection work without Discord credentials. The Discord card reports setup required until its application is configured.
 
-The host registry and allocations are in memory. Restarting the controller invalidates tickets, device credentials and plans. No tunnel, Java process or public listener is created. The existing `metallic-agent` remains a separate Linux telemetry agent and cannot redeem host permissions using its shared token.
+The host registry and allocations default to memory. On Linux, setting `METALLIC_HOSTING_STORE_PATH` enables the [private durable store](hosting-persistence.md): registrations, credential digests, revocations and plans survive restart. Pairing tickets and administrator sessions never survive. Without this setting, restarting still clears all hosting records. No tunnel, Java process or public listener is created. The existing `metallic-agent` remains a separate Linux telemetry agent and cannot redeem host permissions using its shared token.
 
 ## Discord configuration
 
-Create an application that Metallic controls in the Discord developer portal. Register the exact callback URI ending in:
+Create a dedicated application that Metallic controls in the Discord developer portal. Register the exact callback URI ending in:
 
 ```text
 /api/v1/architect/discord/callback
@@ -35,9 +35,13 @@ Configure these server-side environment variables through a secret manager or pr
 
 For an isolated local test, the redirect may use a literal loopback IP with HTTP, such as `http://127.0.0.1:8080/api/v1/architect/discord/callback`. The provider configuration deliberately rejects arbitrary cleartext hosts and the ambiguous hostname `localhost`. Production linking requires HTTPS.
 
+The callback's scheme, hostname and effective port must match the workbench browser origin. HTTPS callbacks require both `METALLIC_COOKIE_SECURE=true` and an explicit `METALLIC_ARCHITECT_ORIGIN`; these checks use parsed URLs and also apply to mixed-case schemes. The origin must contain only the scheme and authority, without credentials, a path, query or fragment.
+
 The controller still binds to loopback. A trusted HTTPS proxy must route the callback and workbench to the same controller and avoid logging callback query strings or credential-bearing bodies. Do not expose the administration service directly to the internet. If a second authentication proxy intercepts the callback, configure that route deliberately so Discord can return to it; the callback performs its own state, browser nonce and stored-session checks.
 
 Sign in within the previous 15 minutes before linking, unlinking or changing host credentials. Linking requests only identify. No bot, email, messages or guild membership scopes are requested. The temporary Discord grant is revoked after resolving identity, and only identity metadata is saved. Linking is not a Discord role sync or Minecraft authentication flow.
+
+Use a dedicated Discord application for Architect's identity-only account linking. Architect revokes the temporary authorization immediately after verifying the profile; Discord also invalidates associated access and refresh tokens for that application and user. Reusing a launcher or Social SDK application that needs ongoing Discord access can therefore interrupt those sessions. Keep this application's client secret on the controller and separate from community-host configuration. See Discord's [OAuth2 documentation](https://docs.discord.com/developers/topics/oauth2) and [account-linking guide](https://docs.discord.com/developers/discord-social-sdk/development-guides/account-linking-with-discord).
 
 The file store supports one process only. Do not share it across replicas. Back up the metadata under the same access controls as account data. Sessions remain in memory and restart requires signing in again.
 

@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "verified_on": "2026-10-20",
+  "java_major": 25,
+  "artifacts": [
+    {
+      "id": "paper",
+      "project": "paper",
+      "version": "26.3",
+      "build": 206,
+      "channel": "STABLE",
+      "name": "paper-26.3-206.jar",
+      "sha256": "4208a692538104ec88699c0e078b2b89842920a10472ebb37e72cdda27c0d80e",
+      "size": 55244607,
+      "metadata": "https://fill.papermc.io/v3/projects/paper/versions/26.3/builds/206"
+    },
+    {
+      "id": "velocity",
+      "project": "velocity",
+      "version": "4.3.0",
+      "build": 44,
+      "channel": "STABLE",
+      "name": "velocity-4.3.0-44.jar",
+      "sha256": "85be73b90f295acd8d5d45a00ad10bac791d4b72b7554172612a89565ebaaa8f",
+      "size": 42342509,
+      "metadata": "https://fill.papermc.io/v3/projects/velocity/versions/4.3.0/builds/44"
+    },
+    {
+      "id": "geyser",
+      "project": "geyser",
+      "version": "2.12.0",
+      "build": 1265,
+      "channel": "default",
+      "name": "Geyser-Velocity.jar",
+      "sha256": "32f04b02378c5c71ca496a88b45b6c607774f99f8b0b9febeb0914c7e6b73ab7",
+      "metadata": "https://download.geysermc.org/v2/projects/geyser/versions/2.12.0/builds/1265"
+    },
+    {
+      "id": "floodgate",
+      "project": "floodgate",
+      "version": "2.2.5",
+      "build": 141,
+      "channel": "default",
+      "name": "floodgate-velocity.jar",
+      "sha256": "649835022de37ff09255fc626d4bfe7bc2a3b926d07b0dfaf1f51e12bf37001d",
+      "metadata": "https://download.geysermc.org/v2/projects/floodgate/versions/2.2.5/builds/141"
+    }
+  ]
+}

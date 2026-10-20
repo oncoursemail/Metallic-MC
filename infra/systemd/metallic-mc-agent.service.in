@@ -1,0 +1,50 @@
+# Managed by Metallic-MC systemd bundle schema 1
+[Unit]
+Description=Metallic-MC local read-only telemetry
+After=network.target metallic-mc-control.service
+Wants=metallic-mc-control.service
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=metallic-metrics
+Group=metallic-metrics
+EnvironmentFile=/etc/metallic-mc/agent.env
+ExecStart=/opt/metallic-mc/current/metallic-agent
+WorkingDirectory=/
+Restart=on-failure
+RestartSec=15s
+TimeoutStopSec=15s
+KillSignal=SIGTERM
+KillMode=control-group
+UMask=0077
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
+InaccessiblePaths=-/var/lib/metallic-mc/controller
+MemoryHigh=48M
+MemoryMax=64M
+MemorySwapMax=0
+CPUQuota=10%
+TasksMax=32
+LimitNOFILE=1024
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=metallic-mc-agent
+
+[Install]
+WantedBy=multi-user.target

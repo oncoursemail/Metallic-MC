@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "bind": "127.0.0.1",
+  "ports": {"proxy": 25565, "hub": 25566, "game": 25567, "bedrock": 19132},
+  "heap_mib": {"proxy": 1024, "hub": 1536, "game": 2048},
+  "native_budget_mib": 1536,
+  "shared_reserve_mib": 2048,
+  "minimum_cpus": 4,
+  "minimum_disk_free_mib": 10240,
+  "stop_disk_free_mib": 2048,
+  "runtime_disk_budget_mib": 6144,
+  "players_per_backend": 12,
+  "startup_timeout_seconds": 180,
+  "shutdown_timeout_seconds": 45
+}

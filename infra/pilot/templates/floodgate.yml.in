@@ -1,0 +1,12 @@
+config-version: 3
+key-file-name: "key.pem"
+username-prefix: "."
+replace-spaces: true
+player-link:
+  enabled: false
+  require-link: false
+  enable-own-linking: false
+  enable-global-linking: false
+metrics:
+  enabled: false
+  uuid: "$metrics_uuid"

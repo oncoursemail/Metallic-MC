@@ -1,0 +1,38 @@
+config-version = "2.9"
+bind = "127.0.0.1:$proxy_port"
+motd = "<light_purple>Metallic-MC</light_purple> <gray>Private pilot</gray>"
+show-max-players = $display_players
+online-mode = true
+force-key-authentication = true
+player-info-forwarding-mode = "modern"
+forwarding-secret-file = "forwarding.secret"
+enable-player-address-logging = false
+sample-players-in-ping = false
+
+[ping-passthrough]
+version = true
+players = false
+description = false
+favicon = false
+modinfo = false
+
+[servers]
+hub = "127.0.0.1:$hub_port"
+game = "127.0.0.1:$game_port"
+try = ["hub"]
+
+[forced-hosts]
+
+[advanced]
+login-ratelimit = 3000
+connection-timeout = 5000
+read-timeout = 30000
+haproxy-protocol = false
+bungee-plugin-message-channel = true
+failover-on-unexpected-server-disconnect = true
+accepts-transfers = false
+log-command-executions = false
+
+[query]
+enabled = false
+show-plugins = false

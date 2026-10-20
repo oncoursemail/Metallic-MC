@@ -2,7 +2,7 @@
 
 ## Status
 
-The `internal/hosting` package is a bounded in-memory policy service. It records ownership, enrollment, allocations and short-lived route decisions. It does not install an agent, reserve physical hardware, start Minecraft, open a listener, create a tunnel, relay packets, publish listings or prove reachability.
+The `internal/hosting` package is a bounded policy service with an in-memory default and optional [private Linux persistence](hosting-persistence.md). It records ownership, enrollment, allocations and short-lived route decisions. It does not install an agent, reserve physical hardware, start Minecraft, open a listener, create a tunnel, relay packets, publish listings or prove reachability.
 
 Allocations report `policy_registered` and successful decisions report `policy_allowed`. Neither label means a live server or route exists. The feature-gated controller uses its private administrator as the owner; this is not public multi-user identity.
 
@@ -54,7 +54,7 @@ An allowed port does not prove which process owns it. Before real tunneling, the
 
 Defaults allow 64 outstanding tickets, 128 host records and 1,024 server allocations. Configuration hard caps are 16,384 tickets, 4,096 hosts and 65,536 allocations, plus explicit resource maxima.
 
-Expired tickets are pruned on issuance. Expired/revoked hosts and their allocations remain bounded records and still consume capacity. There is no deletion, durable audit log or persistence. Restart discards all records, so old credentials fail and hosts must enroll again. This limitation appears in the workbench.
+Expired tickets are pruned on issuance. Expired/revoked hosts and their allocations remain bounded records and still consume capacity. There is no deletion or durable audit log. Without a configured store, restart discards all records and hosts must enroll again. With `NewPersistent`, host records, credential digests, revocations, allocations and aggregate budgets survive; pairing tickets remain ephemeral. The workbench reports the actual storage mode. Recovered policy records never imply a running host or server.
 
 Public rollout requires durable identity and revocation, credential rotation, isolated managed processes, local resource enforcement, authenticated transport, live session revocation, abuse controls and backups.
 

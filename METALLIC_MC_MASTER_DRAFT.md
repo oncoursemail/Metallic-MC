@@ -512,6 +512,12 @@ These are historical results from the implementation delivery, not newly rerun t
 
 See [platform validation](docs/platform/validation.json), [implementation evidence](docs/platform/implementation.md), and [custom core evidence](docs/custom-network/validation.json).
 
+### Documentation-delivery CI observation
+
+GitHub Actions [run 39470904822](https://github.com/oncoursemail/Metallic-MC/actions/runs/39470904822) tested the first documentation commit `1bfded83e5fd3a6e14134b9f6f7664b97b437873` on October 20, 2026. A runner was assigned, and Go vet plus the race-enabled Go suite passed. The existing Python pilot suite failed with five failures and five errors when its stopped-world inspection could not read another same-user process's `/proc/.../cwd`. The pilot refused to establish a stopped snapshot rather than ignoring the missing evidence. Later service-bundle and build steps were skipped, so the overall workflow did not pass.
+
+The documentation update changes no runtime code, tests, or workflow permissions. The pilot's runner/process-inspection model remains an integration issue to qualify without weakening writer-safety checks. This newer observation is separate from PR #29's earlier failure before runner assignment and its recorded passing local verification.
+
 ## 23. Delivery sequence and proof of improvement
 
 ### Product gates
@@ -564,7 +570,7 @@ Comparisons must use equivalent hardware, worlds, versions, plugins, game behavi
 | First original game and content pack | Approved game/art specification, asset manifest, in-game feedback, release-quality testing |
 | Public moderation and consent records | Final policy revision, acceptance store, roles, appeal/evidence/retention workflows |
 | Production observability and alerts | Real metrics/history/traces, actionable thresholds, private diagnostic handling |
-| Hosted CI availability | A runner-executed workflow result; prior infrastructure failure is not a green check |
+| Hosted CI pilot process inspection | Qualify the runner's same-user process inspection without weakening stopped-writer checks, then complete the full workflow; successful Go checks alone are not a green overall result |
 
 This is a draft specification for implementation and review. Unsupported integrations remain explicit; no user-facing availability or measured performance claim is created by merging this document.
 

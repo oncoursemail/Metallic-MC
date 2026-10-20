@@ -41,6 +41,13 @@ TCPShield documents support for certain home-hosted servers but explicitly does 
 
 ## Future public hosting: stronger isolation
 
+The [October 20 platform threat boundaries](platform/architecture.md) refine this
+target: arbitrary tenant plugins require a qualified stronger sandbox; immutable
+compatibility files are not a same-JVM security boundary; external tunnels are
+not managed isolation; sync is a staged checkpoint transaction. The implemented
+planners remain non-executable. The new private diagnostic and inventory API
+rejects owner-supplied evidence and bounds bodies and concurrent analyses.
+
 When Metallic hosts player-owned servers, third-party server JARs and plugins must be treated as **untrusted code**. Do not run them under the control-plane account. Use dedicated namespaces/containers or stronger isolation with CPU/memory/PID/disk/network limits; deny privileged containers, host networking, host path mounts and Docker socket. Apply egress controls, SFTP containment, per-tenant secrets, quotas, abuse monitoring, malware scanning and isolation regression tests. Public hosting is a separate product with larger risk; delay it until the internal network works reliably.
 
 ## Backup and incident policy

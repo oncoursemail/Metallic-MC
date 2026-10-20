@@ -1,0 +1,182 @@
+{
+  "schema": "metallic.platform-validation/v1",
+  "validated_on": "2026-10-20",
+  "scope": "repository-source-foundation",
+  "canonical_base_commit": "81e44c76d9670a3994825fc0139982ea492f3684",
+  "canonical_base_tree": "dafc8b0fa452c61e0f02cd30238ade687fcec598",
+  "base_blobs_verified": 140,
+  "toolchain": {
+    "go": "go1.27.2 linux/amd64",
+    "module_go_baseline": "1.23",
+    "build_vcs_stamping": false,
+    "build_vcs_reason": "Recovered source checkout lacks ordinary VCS metadata; GitHub delivery uses canonical parent."
+  },
+  "checks": [
+    {
+      "name": "repository_go_race_tests",
+      "command": "go test -race -count=1 -p 2 -json ./...",
+      "result": "pass",
+      "exit_code": 0,
+      "packages_passed": 23,
+      "top_level_tests_passed": 247,
+      "subtests_passed": 782,
+      "fuzz_targets_and_seeds_passed": 31,
+      "failed": [],
+      "skipped": [],
+      "first_event": "2026-10-20T05:06:45.692533207-05:00",
+      "last_event": "2026-10-20T05:08:34.217681455-05:00",
+      "packages": [
+        "github.com/oncoursemail/metallic-mc/cmd/metallic-agent",
+        "github.com/oncoursemail/metallic-mc/cmd/metallic-benchmark-gate",
+        "github.com/oncoursemail/metallic-mc/cmd/metallic-control",
+        "github.com/oncoursemail/metallic-mc/cmd/metallic-core-lab",
+        "github.com/oncoursemail/metallic-mc/cmd/metallic-doctor",
+        "github.com/oncoursemail/metallic-mc/cmd/metallic-edge-audit",
+        "github.com/oncoursemail/metallic-mc/internal/agent",
+        "github.com/oncoursemail/metallic-mc/internal/benchgate",
+        "github.com/oncoursemail/metallic-mc/internal/catalog",
+        "github.com/oncoursemail/metallic-mc/internal/control",
+        "github.com/oncoursemail/metallic-mc/internal/diagnostics",
+        "github.com/oncoursemail/metallic-mc/internal/edgeaudit",
+        "github.com/oncoursemail/metallic-mc/internal/hosting",
+        "github.com/oncoursemail/metallic-mc/internal/identity",
+        "github.com/oncoursemail/metallic-mc/internal/moderation",
+        "github.com/oncoursemail/metallic-mc/internal/network/policy",
+        "github.com/oncoursemail/metallic-mc/internal/network/presentation",
+        "github.com/oncoursemail/metallic-mc/internal/network/session",
+        "github.com/oncoursemail/metallic-mc/internal/network/wire",
+        "github.com/oncoursemail/metallic-mc/internal/platform/lifecycle",
+        "github.com/oncoursemail/metallic-mc/internal/platform/population",
+        "github.com/oncoursemail/metallic-mc/internal/platform/syncplan",
+        "github.com/oncoursemail/metallic-mc/internal/resources"
+      ]
+    },
+    {
+      "name": "go_vet",
+      "command": "go vet ./...",
+      "result": "pass",
+      "exit_code": 0
+    },
+    {
+      "name": "all_package_build",
+      "command": "go build -buildvcs=false ./...",
+      "result": "pass",
+      "exit_code": 0
+    },
+    {
+      "name": "go_formatting",
+      "result": "pass",
+      "unformatted_files": 0
+    },
+    {
+      "name": "platform_javascript_syntax",
+      "command": "node --check internal/control/web/platform.js",
+      "result": "pass",
+      "exit_code": 0
+    },
+    {
+      "name": "private_pilot_regressions",
+      "command": "python3 -m unittest discover -s tools -p pilot_test.py -v",
+      "result": "pass",
+      "exit_code": 0,
+      "tests": 29
+    },
+    {
+      "name": "private_service_bundle_regressions",
+      "command": "python3 -m unittest discover -s infra/systemd -p '*_test.py' -v",
+      "result": "pass",
+      "exit_code": 0,
+      "tests": 6
+    },
+    {
+      "name": "browser_fixture_checks",
+      "result": "pass",
+      "browser": "Chrome Headless Shell 155.0.8059.84",
+      "viewports": [
+        {
+          "width": 1440,
+          "height": 1100
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ],
+      "checks": [
+        "four_mode_cards",
+        "diagnostic_submission_and_render",
+        "sync_review_and_exclusions",
+        "invalid_json_feedback",
+        "desktop_and_mobile_layout"
+      ],
+      "javascript_errors": 0,
+      "horizontal_overflow": false,
+      "actual_project_assets": true,
+      "api_responses": "fixtures",
+      "root_visual_inspection": "desktop_and_mobile_screenshots",
+      "limits": "Not live full-stack E2E, Minecraft client testing, or production hosting."
+    }
+  ],
+  "development_fuzz_campaigns": [
+    {
+      "package": "internal/platform/syncplan",
+      "duration_seconds": 5,
+      "executions": 159030,
+      "result": "pass"
+    },
+    {
+      "package": "internal/diagnostics",
+      "duration_seconds": 5,
+      "executions": 8011,
+      "result": "pass"
+    }
+  ],
+  "review": {
+    "cross_component_review": true,
+    "addressed": [
+      "bounded_aggregate_population_retention",
+      "bounded_age_population_semantics",
+      "failed_writer_restart_fencing",
+      "validate_request_before_state_adapter",
+      "explicit_historical_evaluation_time",
+      "bounded_http_concurrency",
+      "restore_scope_documentation",
+      "exit_status_uncertainty",
+      "inventory_metadata_wording"
+    ]
+  },
+  "environment_notes": [
+    "Default sandbox blocks temporary test sockets and same-user process inspection. A permitted local test run passed without changing source or tests.",
+    "Browser launched with local fixtures after permission for the headless test process. No user browser or remote deployment was used."
+  ],
+  "hosted_ci": "Must be checked on the delivered pull request; local results do not imply hosted CI passed.",
+  "not_verified": [
+    "desktop_launcher_and_Microsoft_Minecraft_authentication",
+    "live_Minecraft_gameplay_or_cross_version_matrix",
+    "managed_runtime_executor_and_tenant_isolation",
+    "upload_extraction_or_atomic_world_promotion",
+    "real_gateway_population_ingestion_or_bot_detection",
+    "production_capacity_latency_and_cost",
+    "released_resource_pack_or_game_content"
+  ],
+  "changed_code_sha256": {
+    "cmd/metallic-doctor/main.go": "4538571238fd21e9941e38c22ce764652f4a137daba782d66a7e2145e03057c8",
+    "cmd/metallic-doctor/main_test.go": "f161816ba4f806a8fe3a4214c578b4ee534db087b55edfef552380cecea9711f",
+    "internal/control/architect.go": "0cce5aa9f72d54adfaa97fc384e34fa64153c21340fbf10afb82d525c3606bfe",
+    "internal/control/control.go": "79266bcb04a7766286d6fde14047465de1358f62b7f7795b1ebda50be16df8af",
+    "internal/control/platform.go": "deed4dac44c31ff57e161981942b71ed28b71d6a074ed5778e5086545b7519c0",
+    "internal/control/platform_test.go": "0f6d1c3f090067a0708643d2122a3b93b8d1be7a3365050a66030081a7fec168",
+    "internal/control/web/architect.html": "ada5b79d3ef87dd696bcfc47500c33674b217a3e125950059e9354667292bf94",
+    "internal/control/web/platform.css": "aea652705fbefcae9f4aea51055a22ca0337d8a8827120450dfd52079a49e10a",
+    "internal/control/web/platform.html": "01e34c5846f92cfddb961e4f3586cb44e12cccc22f44dace4df5c61e9c5088e3",
+    "internal/control/web/platform.js": "f3fb9d79a30091fdac525accfd3cec4cf73291690c013ab0f2ec6a9c67a4acf1",
+    "internal/diagnostics/diagnostics.go": "1a1c23417c70a2557c0553ca00fdf6f081ee6737cfdae87e7b18faa2784ff1eb",
+    "internal/diagnostics/diagnostics_test.go": "d86b19922df51c5ece89a02adf92771bf68adb13d36504c95008d06fbeac6ab9",
+    "internal/platform/lifecycle/lifecycle.go": "591f70f20f840efe658a1fecee1988c09ce5e20e330a87bf29c5b98b730e9419",
+    "internal/platform/lifecycle/lifecycle_test.go": "924964d1df53fec289f719b9f7a2d0c48489dcfaa3ffac89a02278254961ab89",
+    "internal/platform/population/population.go": "871c27b7231bee22e97bb0974548966761c70fc40923b90b50e904e109d81b2d",
+    "internal/platform/population/population_test.go": "579252213ca53d41bd8ec58587cb00da2d7ff0d6246ff9c71c7acd8cf52bead9",
+    "internal/platform/syncplan/plan.go": "ff723434f81eed2d7513c26957c9f19bcfb60d23e5bc1c2b9de9e38c7de9b731",
+    "internal/platform/syncplan/plan_test.go": "92a754728635bd5c72f25e76c367c635c19352efb78cfce3c6f20b042bfbe8f1"
+  }
+}

@@ -4,7 +4,7 @@
 
 **Private, self-hosted Minecraft Java + Bedrock network infrastructure.**
 
-Metallic-MC is being designed as a complete game network with a dedicated public edge, custom game services, a cluster control plane, observability, and an eventual hosting platform. It is intended to scale horizontally across hardware owned by Metallic.
+Metallic-MC is being designed as a Minecraft launcher, local server manager, managed hosting platform and original game network, with a dedicated edge, custom game services, a cluster control plane and observability. It is intended to scale horizontally across hardware owned by Metallic.
 
 > **Current stage: custom offline network core, private staging tooling and control foundation.** The repository includes original packet framing, permissions, session ownership and player display code; a runnable integration lab; a real read-only dashboard; conservative placement preview; an opt-in scoped Star AI status API; a Linux metrics agent; and optional persistent hosting policy. The pinned loopback Geyser profile cannot establish Bedrock gameplay, so pilot launch is blocked. A playable custom gateway, live Java/Bedrock login, public protected edge, secure multi-tenancy and a custom game engine remain unverified or unimplemented. A successful `go test` is not a game-server load benchmark.
 
@@ -42,6 +42,34 @@ denials, stale display rejection and a fenced player handoff. The output is
 explicitly synthetic and `productionReady: false`. It opens no listener and does
 not authenticate a Minecraft client or save a world. See each package's README
 under `internal/network/` for exact API and caller responsibilities.
+
+## Launcher and server platform foundation
+
+The October 20 platform design now defines local private, hosted private, hosted
+public and external public modes. Local private remains independent; explicit
+sync prepares a separate hosted copy with managed compatibility and isolation.
+Read the [full architecture](docs/platform/architecture.md),
+[59 primary-source references](docs/platform/sources.json) and
+[implementation/status](docs/platform/implementation.md).
+
+Implemented additions are bounded sync-inventory validation, typed lifecycle and
+admission planning, authenticated-session observation accounting, and private log
+diagnostics. The optional `/architect/platform` Server Studio page connects the
+inventory and diagnostic tools to the existing private controller. The original
+dashboard and earlier designs remain available.
+
+The offline crash analyzer works now:
+
+```sh
+go run ./cmd/metallic-doctor -log /path/to/latest.log
+```
+
+It returns fixed findings, evidence line numbers and safe next checks without
+uploading logs or applying fixes. The platform modules do not yet launch Minecraft,
+upload worlds, execute lifecycle actions or provide real gateway observations.
+They explicitly distinguish proposals from running services. Launcher sign-in,
+isolated hosting, console/files, protected packs and public discovery remain
+integration gates.
 
 ## Implemented foundation: M0 + read-only M0.5
 

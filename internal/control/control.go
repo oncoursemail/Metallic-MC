@@ -93,21 +93,24 @@ type loginThrottle struct {
 	attempts int
 }
 type Controller struct {
-	cfg      Config
-	discord  *identity.Service
-	hosts    *hosting.Service
-	catalog  *catalog.Client
-	mu       sync.RWMutex
-	nodes    map[string]nodeRecord
-	sessions map[string]session
-	failed   map[string]loginThrottle
-	now      func() time.Time
+	cfg           Config
+	discord       *identity.Service
+	hosts         *hosting.Service
+	catalog       *catalog.Client
+	platformState PlatformStateReader
+	platformWork  chan struct{}
+	mu            sync.RWMutex
+	nodes         map[string]nodeRecord
+	sessions      map[string]session
+	failed        map[string]loginThrottle
+	now           func() time.Time
 }
 
 func New(cfg Config) http.Handler { return NewController(cfg).Handler() }
 func NewController(cfg Config) *Controller {
 	c := &Controller{cfg: cfg, nodes: make(map[string]nodeRecord), sessions: make(map[string]session), failed: make(map[string]loginThrottle), now: time.Now}
 	if cfg.ArchitectEnabled {
+		c.platformWork = make(chan struct{}, 2)
 		options := hosting.DefaultConfig()
 		options.Now = func() time.Time { return c.now() }
 		hosts, err := hosting.NewService(options)
@@ -132,6 +135,7 @@ func (c *Controller) Handler() http.Handler {
 		mux.Handle(method+" /api/v1/architect/", architect)
 	}
 	mux.HandleFunc("GET /architect", c.architectPage)
+	mux.HandleFunc("GET /architect/platform", c.platformPage)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		_, _ = io.WriteString(w, "ok\n")

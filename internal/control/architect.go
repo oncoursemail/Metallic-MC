@@ -57,6 +57,7 @@ func (c *Controller) architectHandler() http.Handler {
 	}
 	mux := http.NewServeMux()
 	c.registerArchitectResources(mux)
+	c.registerPlatform(mux)
 	mux.HandleFunc("GET "+architectPrefix+"capabilities", c.requireAdmin(c.architectCapabilities))
 	mux.HandleFunc("GET "+architectPrefix+"discord", c.requireAdmin(c.discordStatus))
 	mux.HandleFunc("POST "+architectPrefix+"discord/start", c.requireAdmin(c.architectMutation(c.discordStart, true)))

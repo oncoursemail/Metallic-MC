@@ -4,6 +4,15 @@ Each milestone has acceptance criteria. Feature ideas are grouped by dependency 
 
 ## Current owner direction: custom software, October 20
 
+The expanded [launcher and server platform decision](platform/architecture.md)
+adds local/private independence, explicit checkpoint sync, managed private/public
+hosting, a distinct external tunnel tier, protected compatibility, trustworthy
+population evidence, recovery and moderation. P0–P6 in that document govern this
+product work alongside C0–C7 below. Original lifecycle, sync, population and
+diagnostic packages plus private Server Studio tools are implemented;
+[the delivery record](platform/implementation.md) distinguishes these from
+runtime execution, desktop launching and public hosting.
+
 The [custom network specification](custom-network/architecture.md) now governs
 Gateway, Authority, Presence, Director, Runtime, Games and Recovery development.
 Its C0–C7 gates complement the product phases below. C0 includes four original

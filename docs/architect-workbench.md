@@ -47,6 +47,13 @@ The file store supports one process only. Do not share it across replicas. Back 
 
 ## HTTP surface
 
+The additive [Server Studio](platform/implementation.md) at
+`/architect/platform` provides mode descriptions, a first-import inventory
+preview and bounded log diagnostics. Its `/api/v1/architect/platform/` routes
+have separate 2 MiB transport bounds and two-analysis concurrency limits; the
+16 KiB limit below continues to describe the original Architect routes. Server
+Studio does not execute server operations or launch Minecraft.
+
 All routes have prefix `/api/v1/architect/`. JSON request bodies are bounded to 16 KiB, unknown fields and trailing values are rejected, and responses are not cached.
 
 Browser writes require the session cookie and `X-Metallic-Intent: architect`; supplied Origin must match the configured/current origin and cross-site fetches are rejected. Credential changes additionally require recent authentication.

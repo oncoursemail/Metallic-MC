@@ -2,7 +2,7 @@
 
 const $ = id => document.getElementById(id);
 const select = s => document.querySelector(s);
-const navLabels = {overview:'Overview',nodes:'Compute nodes',resources:'Resource manager',servers:'Game services',operations:'Operations'};
+const navLabels = {overview:'Overview',nodes:'Compute nodes',resources:'Resource manager',servers:'Game services',operations:'Operations',legacy:'Old Servers'};
 let latest = { nodes: [] };
 let resources = null;
 let resourceProfileId = 'mc-lobby';
@@ -13,8 +13,17 @@ function element(tag, className, text) {const el=document.createElement(tag);if(
 function emptyState(title, subtitle) {const wrap=element('div','empty-state');wrap.append(element('div','empty-icon','⌁'),element('strong','',title),element('p','',subtitle));return wrap;}
 function status(isOK,label) {const e=element('span','state-pill '+(isOK?'state-ok':'state-down'));e.append(element('span','tiny-dot'),document.createTextNode(label));return e;}
 function row(title,sub,ok,last) {const e=element('div','list-item');const left=element('div','list-details');left.append(element('strong','',title),element('small','',sub));e.append(left,status(ok,last));return e;}
-function showPane(pane) { if(!navLabels[pane])return;document.querySelectorAll('[data-pane]').forEach(el=>el.classList.toggle('hidden',el.dataset.pane!==pane));$('resource-profile')?.addEventListener('change',e=>{resourceProfileId=e.target.value;updateResources();});
-document.querySelectorAll('[data-nav]').forEach(el=>el.classList.toggle('active',el.dataset.nav===pane));setText('page-label',navLabels[pane]);}
+function showPane(pane) {
+ if(!navLabels[pane])return;
+ document.querySelectorAll('[data-pane]').forEach(el=>el.classList.toggle('hidden',el.dataset.pane!==pane));
+ document.querySelectorAll('[data-nav]').forEach(el=>{
+  const active=el.dataset.nav===pane;
+  el.classList.toggle('active',active);
+  if(active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');
+ });
+ setText('page-label',navLabels[pane]);
+ document.title=navLabels[pane]+' · Metallic Control';
+}
 function ui() {
  const nodes=latest.nodes||[];
  const online=nodes.filter(n=>n.online);
@@ -41,10 +50,20 @@ function ui() {
  else allServices.slice(0,5).forEach(s=>previewServices.append(row(s.name,`${s.kind||'TCP'} · ${s.nodeId}`,s.nodeOnline&&s.healthy,s.nodeOnline&&s.healthy?'Reachable':'Down')));
  const nodeTable=$('nodes-table');nodeTable.replaceChildren();
  if(!nodes.length)nodeTable.append(emptyState('No nodes registered','The agent sends its first heartbeat immediately after starting.'));
- else nodes.forEach(n=>{const card=element('div','node-card');const top=element('div','node-card-top');const info=element('div','node-card-info');info.append(element('span','node-symbol','▤'),element('div','node-name',n.hostname));top.append(info,status(n.online,n.online?'ONLINE':'OFFLINE'));const grid=element('div','node-properties');[['NODE ID',n.nodeId],['CPU',`${n.cpuPercent.toFixed(1)}%`],['MEMORY',`${humanBytes(n.memoryUsed)} / ${humanBytes(n.memoryTotal)}`],['DISK',`${humanBytes(n.diskUsed)} / ${humanBytes(n.diskTotal)}`],['LOAD (1M)',n.load1.toFixed(2)],['LAST SEEN',new Date(n.lastSeen).toLocaleTimeString()]].forEach(([a,b])=>{const cell=element('div','node-property');cell.append(element('small','',a),element('strong','',b));grid.append(cell)});card.append(top,grid);if(n.history?.length>1){const wrap=element('div','history-wrap');wrap.append(element('span','history-label','CPU TREND · LAST 60 REPORTS'));const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 400 48');svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('aria-label','CPU utilization history');const path=document.createElementNS('http://www.w3.org/2000/svg','path');const points=n.history.map((s,i)=>`${i===0?'M':'L'}${(i/(n.history.length-1)*400).toFixed(2)} ${(48-(Math.min(100,Math.max(0,s.cpuPercent))/100*40+4)).toFixed(2)}`).join(' ');path.setAttribute('d',points);path.setAttribute('stroke','#c2df87');path.setAttribute('stroke-width','2.4');path.setAttribute('fill','none');svg.append(path);wrap.append(svg);card.append(wrap)}nodeTable.append(card)});
+ else nodes.forEach(n=>{const card=element('div','node-card');const top=element('div','node-card-top');const info=element('div','node-card-info');info.append(element('span','node-symbol','▤'),element('div','node-name',n.hostname));top.append(info,status(n.online,n.online?'ONLINE':'OFFLINE'));const grid=element('div','node-properties');[['NODE ID',n.nodeId],['CPU',`${n.cpuPercent.toFixed(1)}%`],['MEMORY',`${humanBytes(n.memoryUsed)} / ${humanBytes(n.memoryTotal)}`],['DISK',`${humanBytes(n.diskUsed)} / ${humanBytes(n.diskTotal)}`],['LOAD (1M)',n.load1.toFixed(2)],['LAST SEEN',new Date(n.lastSeen).toLocaleTimeString()]].forEach(([a,b])=>{const cell=element('div','node-property');cell.append(element('small','',a),element('strong','',b));grid.append(cell)});card.append(top,grid);if(n.history?.length>1){const wrap=element('div','history-wrap');wrap.append(element('span','history-label','CPU TREND · LAST 60 REPORTS'));const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 400 48');svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('aria-label','CPU utilization history');const path=document.createElementNS('http://www.w3.org/2000/svg','path');const points=n.history.map((s,i)=>`${i===0?'M':'L'}${(i/(n.history.length-1)*400).toFixed(2)} ${(48-(Math.min(100,Math.max(0,s.cpuPercent))/100*40+4)).toFixed(2)}`).join(' ');path.setAttribute('d',points);path.setAttribute('stroke','#b65f45');path.setAttribute('stroke-width','2.4');path.setAttribute('fill','none');svg.append(path);wrap.append(svg);card.append(wrap)}nodeTable.append(card)});
  const srvTable=$('servers-table');srvTable.replaceChildren();
  if(!allServices.length)srvTable.append(emptyState('No services discovered','Add probes such as lobby@127.0.0.1:25566 and proxy@127.0.0.1:25565.'));
  else allServices.forEach(s=>{const card=element('div','service-row');const left=element('div','service-name');left.append(element('span','node-symbol','▥'),element('div','service-text',s.name));const details=element('div','service-details');details.append(element('span','',s.nodeId),element('code','',s.address));card.append(left,details,status(s.nodeOnline&&s.healthy,s.nodeOnline&&s.healthy?'REACHABLE':'UNREACHABLE'));srvTable.append(card)});
+ const legacy=$('legacy-nodes');legacy.replaceChildren();
+ if(!nodes.length){legacy.append(emptyState('No authenticated host reports','Legacy process presence is only sampled by a reporting Linux node agent. Nothing on Old Servers is modified.'));}
+ else nodes.forEach(n=>{
+  const wrap=element('div','legacy-row');const meta=element('div','');
+  const label=n.legacyWingsChecked?(n.legacyWingsObserved?'Wings process observed':'Wings process not observed'):'Legacy inspection not reported';
+  meta.append(element('strong','',n.hostname),element('small','',label+' · '+(n.online?'Online node':'Last report is stale')));
+  const observed=Boolean(n.online&&n.legacyWingsChecked&&n.legacyWingsObserved);
+  wrap.append(meta,status(observed,observed?'OBSERVED':n.legacyWingsChecked?'NOT OBSERVED':'UNKNOWN'));
+  legacy.append(wrap);
+ });
  const ops=$('operations-list');ops.replaceChildren();
  if(!nodes.length)ops.append(row('No node telemetry','Agent installation required',false,'Setup'));
  nodes.filter(n=>!n.online).forEach(n=>ops.append(row(`Node offline: ${n.hostname}`,'No heartbeat received within 35 seconds',false,'Investigate')));
@@ -105,6 +124,7 @@ async function updateResources() {
  }catch(err) {resources=null;renderResources();}
 }
 async function update() { try {const res=await fetch('/api/v1/overview',{cache:'no-store',credentials:'same-origin'});if(res.status===401){location.href='/login';return;}if(!res.ok)throw new Error('HTTP '+res.status);latest=await res.json();setText('api-state','Control API connected');$('api-state').className='mini-indicator connected';setText('updated-at','SYNCED '+new Date().toLocaleTimeString());ui();await updateResources();}catch(err){setText('api-state','API unavailable');$('api-state').className='mini-indicator disconnected';setText('updated-at','Latest data may be stale');}}
+$('resource-profile')?.addEventListener('change',e=>{resourceProfileId=e.target.value;updateResources();});
 document.querySelectorAll('[data-nav]').forEach(e=>e.addEventListener('click',()=>showPane(e.dataset.nav)));
 document.querySelectorAll('[data-target]').forEach(e=>e.addEventListener('click',()=>showPane(e.dataset.target)));
 update();setInterval(update,10000);

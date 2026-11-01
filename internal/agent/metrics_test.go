@@ -44,3 +44,31 @@ func TestPressureSome10ParsesLinuxPSI(t *testing.T) {
 		t.Fatal("expected error for missing some PSI entry")
 	}
 }
+
+func TestObserveLegacyProcessNoSecrets(t *testing.T) {
+	root := t.TempDir()
+	if err := os.Mkdir(filepath.Join(root, "120"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "120", "comm"), []byte("wings\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(filepath.Join(root, "140"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "140", "comm"), []byte("llama-server\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	got, err := observeLegacyProcess(root, "wings")
+	if err != nil || !got {
+		t.Fatalf("expected observation, got %v %v", got, err)
+	}
+	got, err = observeLegacyProcess(root, "pterodactyl")
+	if err != nil || got {
+		t.Fatalf("must not invent old panel, got %v %v", got, err)
+	}
+	_, err = observeLegacyProcess(filepath.Join(root, "not-found"), "wings")
+	if !os.IsNotExist(err) {
+		t.Fatalf("expected explicit error for missing procfs, got %v", err)
+	}
+}

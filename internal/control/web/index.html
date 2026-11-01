@@ -1,54 +1,84 @@
 <!doctype html>
-<html lang="en"><head>
- <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
- <meta name="theme-color" content="#111315">
- <title>Metallic — Control</title>
- <link rel="stylesheet" href="/assets/styles.css"><script defer src="/assets/app.js"></script>
-</head><body>
- <div class="shell">
- <aside class="sidebar">
-  <a class="brand" href="/"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span>METALLIC <small>CONTROL</small></span></a>
-  <div class="side-label">WORKSPACE</div>
-  <nav class="nav" aria-label="Dashboard navigation">
-   <button class="nav-link active" data-nav="overview"><span class="nav-symbol">◫</span> Overview</button>
-   <button class="nav-link" data-nav="nodes"><span class="nav-symbol">▤</span> Compute nodes</button>
-   <button class="nav-link" data-nav="resources"><span class="nav-symbol">◷</span> Resource manager</button>
-   <button class="nav-link" data-nav="servers"><span class="nav-symbol">▥</span> Game services</button>
-   <button class="nav-link" data-nav="operations"><span class="nav-symbol">⊞</span> Operations</button>
-  </nav>
-  <div class="sidebar-bottom"><div class="sidebar-separator"></div><div class="environment"><span class="env-dot"></span><div><strong>Foundation environment</strong><small>Read-only telemetry · v0.1</small></div></div><form action="/logout" method="post"><button class="signout" type="submit">Sign out <span aria-hidden="true">↗</span></button></form></div>
- </aside>
- <div class="main">
-  <header class="topbar"><div class="crumb"><span>METALLIC</span><span class="slash">/</span><span id="page-label">Overview</span></div><div class="topbar-right"><span class="mini-indicator" id="api-state">Connecting</span><span class="time-label" id="updated-at">Not synchronized</span></div></header>
-  <main id="main-content">
-   <section class="pane" data-pane="overview">
-    <div class="intro"><div><div class="eyebrow"><span class="accent-line"></span> CONTROL CENTER <span class="eyebrow-dot">·</span> METALLIC NETWORK</div><h1>Build the world.<br><em>Own the infrastructure.</em></h1><p>Every node. Every game server. One command center.</p></div><div class="intro-right"><div class="small-caption">NETWORK STATE</div><div class="network-state"><span id="network-dot" class="status-dot neutral"></span><strong id="network-state">Awaiting telemetry</strong></div><span class="muted" id="network-detail">Connect an agent to begin monitoring.</span></div></div>
-    <div class="stat-grid">
-     <article class="metric"><span class="metric-label">Connected nodes <span>↗</span></span><div class="metric-number" id="node-count">—</div><div class="metric-meta" id="node-meta">Awaiting data</div></article>
-     <article class="metric"><span class="metric-label">Healthy services <span>↗</span></span><div class="metric-number" id="service-count">—</div><div class="metric-meta" id="service-meta">Awaiting data</div></article>
-     <article class="metric"><span class="metric-label">Average node CPU <span>↗</span></span><div class="metric-number" id="cpu-average">—</div><div class="metric-meta">Across online compute nodes</div></article>
-     <article class="metric"><span class="metric-label">Agent reporting <span>↗</span></span><div class="metric-number" id="agent-count">—</div><div class="metric-meta">Heartbeat window · 35 seconds</div></article>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#15191b">
+  <meta name="description" content="Metallic Control — private, read-only fleet operations console.">
+  <title>Overview · Metallic Control</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script defer src="/assets/app.js"></script>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="/" aria-label="Metallic Control home">
+        <svg class="brand-mark" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 7H14L10 25H3L7 11H3V7Z" fill="currentColor"/><path d="M17 7H29L25 25H17L21 11H17V7Z" fill="currentColor"/></svg>
+        <span class="brand-type">METALLIC<span>CONTROL / 01</span></span>
+      </a>
+      <div class="nav-group-label">WORKSPACE <span>01</span></div>
+      <nav class="nav" aria-label="Dashboard sections">
+        <button type="button" class="nav-link active" data-nav="overview" aria-current="page"><span class="nav-symbol" aria-hidden="true">▦</span> Overview <span class="nav-arrow" aria-hidden="true">↗</span></button>
+        <button type="button" class="nav-link" data-nav="nodes"><span class="nav-symbol" aria-hidden="true">⌘</span> Compute fleet <span class="nav-arrow" aria-hidden="true">↗</span></button>
+        <button type="button" class="nav-link" data-nav="resources"><span class="nav-symbol" aria-hidden="true">◫</span> Resource planner <span class="nav-arrow" aria-hidden="true">↗</span></button>
+        <button type="button" class="nav-link" data-nav="servers"><span class="nav-symbol" aria-hidden="true">▤</span> Game services <span class="nav-arrow" aria-hidden="true">↗</span></button>
+      </nav>
+      <div class="nav-group-label nav-group-spaced">MIGRATION <span>02</span></div>
+      <nav class="nav" aria-label="Legacy migration">
+        <button type="button" class="nav-link" data-nav="legacy"><span class="nav-symbol" aria-hidden="true">◷</span> Old Servers <span class="legacy-tiny">LEGACY</span></button>
+      </nav>
+      <div class="nav-group-label nav-group-spaced">SYSTEM <span>03</span></div>
+      <nav class="nav" aria-label="System operations">
+        <button type="button" class="nav-link" data-nav="operations"><span class="nav-symbol" aria-hidden="true">⊞</span> Operations <span class="nav-arrow" aria-hidden="true">↗</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-hardware"><div class="hardware-rules" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><span>BUILT TO RUN ON<br>HARDWARE YOU OWN.</span></div>
+        <div class="side-profile"><span class="profile-square">MC</span><div><strong>Private workspace</strong><small>M0 · RESEARCH BUILD</small></div></div>
+        <form method="post" action="/logout"><button type="submit" class="signout">Sign out <span aria-hidden="true">↗</span></button></form>
+      </div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <div class="crumb"><span class="crumb-product">METALLIC / CONTROL</span><span class="slash">/</span><span id="page-label">Overview</span></div>
+        <div class="topbar-right"><span class="mini-indicator" id="api-state" role="status">Connecting</span><span class="time-label" id="updated-at">Not synchronized</span><span class="preview-label">M0 · PREVIEW</span></div>
+      </header>
+      <main id="main-content">
+        <section class="pane" data-pane="overview">
+          <div class="section-topline"><span class="chapter-label">WORKSPACE / <b>01</b></span><span class="view-id">INFRASTRUCTURE INTELLIGENCE <span class="view-dot">•</span> 001</span></div>
+          <div class="page-hero"><div><span class="eyebrow">METALLIC CONTROL <span class="slash">/</span> OVERVIEW</span><h1>See the whole<br><span>system.</span></h1><p class="hero-sub">One operational picture for the three products running on your own machines.</p></div><div class="hero-aside"><span class="hero-aside-label">CURRENT NETWORK STATE</span><div class="hero-state"><span id="network-dot" class="status-dot neutral"></span><span id="network-state">Awaiting telemetry</span></div><p id="network-detail">Connect an agent to begin monitoring.</p></div></div>
+          <div class="metric-strip">
+            <article class="metric"><div class="metric-head"><span class="metric-num">01</span><span class="metric-label">ONLINE NODES</span></div><strong class="metric-number" id="node-count">—</strong><span class="metric-meta" id="node-meta">Awaiting data</span></article>
+            <article class="metric"><div class="metric-head"><span class="metric-num">02</span><span class="metric-label">SERVICES RESPONDING</span></div><strong class="metric-number" id="service-count">—</strong><span class="metric-meta" id="service-meta">Awaiting data</span></article>
+            <article class="metric"><div class="metric-head"><span class="metric-num">03</span><span class="metric-label">AVG. CPU LOAD</span></div><strong class="metric-number" id="cpu-average">—</strong><span class="metric-meta">Online nodes only</span></article>
+            <article class="metric"><div class="metric-head"><span class="metric-num">04</span><span class="metric-label">AGENTS REPORTING</span></div><strong class="metric-number" id="agent-count">—</strong><span class="metric-meta">35 second heartbeat window</span></article>
+          </div>
+          <div class="content-grid">
+            <section class="panel"><div class="panel-heading"><div><span class="section-index">FLEET / 01</span><h2>Compute nodes</h2></div><button class="text-link" type="button" data-target="nodes">Explore nodes <span aria-hidden="true">↗</span></button></div><div id="overview-nodes" class="list-stack"></div></section>
+            <section class="panel"><div class="panel-heading"><div><span class="section-index">NETWORK / 02</span><h2>Game services</h2></div><button class="text-link" type="button" data-target="servers">All services <span aria-hidden="true">↗</span></button></div><div id="overview-services" class="list-stack"></div></section>
+          </div>
+          <div class="overview-bottom">
+            <section class="blueprint"><div class="blueprint-head"><span>TOPOLOGY / BLUEPRINT 003</span><span>DESIGN ONLY — NOT DEPLOYED</span></div><div class="blueprint-flow"><div class="blueprint-station"><span class="station-index">01</span><strong>CLIENTS</strong><small>Java / Bedrock</small></div><div class="station-path" aria-hidden="true"></div><div class="blueprint-station"><span class="station-index">02</span><strong>SHIELDED EDGE</strong><small>Protected ingress</small></div><div class="station-path" aria-hidden="true"></div><div class="blueprint-station"><span class="station-index">03</span><strong>GATEWAY</strong><small>Velocity / Geyser</small></div><div class="station-path" aria-hidden="true"></div><div class="blueprint-station active-station"><span class="station-index">04</span><strong>GAME FLEET</strong><small>Distributed servers</small></div></div><div class="blueprint-foot">Connection diagram represents the intended topology, not active network connectivity.</div></section>
+            <aside class="principle"><span class="section-index">DESIGN PRINCIPLE / 001</span><div class="principle-glyph" aria-hidden="true">M<span>↗</span></div><p>Performance is not a promise.<br><strong>It's a measurement.</strong></p><span>NO SYNTHETIC METRICS IN PRODUCTION</span></aside>
+          </div>
+        </section>
+
+        <section class="pane hidden" data-pane="nodes"><div class="page-title"><span class="section-index">FLEET / 01</span><h1>Compute fleet<span class="title-period">.</span></h1><p>Live resource telemetry from authenticated Metallic agents, not inferred hardware capacity.</p></div><section class="panel"><div class="panel-heading"><div><span class="section-index">PHYSICAL COMPUTE</span><h2>Fleet inventory</h2></div><span id="node-table-count" class="outline-badge">NO REPORTS</span></div><div id="nodes-table" class="node-table"></div></section></section>
+
+        <section class="pane hidden" data-pane="resources"><div class="page-title"><span class="section-index">PLANNING / 02</span><h1>Resource planner<span class="title-period">.</span></h1><p>Ask where a workload <em>could</em> safely run. Nothing here can start, stop, or modify a server.</p></div>
+          <div class="resource-grid"><section class="panel resource-selector-panel"><div class="panel-heading"><div><span class="section-index">01 / CONFIGURE</span><h2>Workload template</h2></div><span class="outline-badge">SIMULATION</span></div><div class="resource-selector-inner"><label class="resource-label" for="resource-profile">Select workload profile</label><select id="resource-profile" class="resource-select"><option value="mc-lobby">Metallic MC / Minecraft lobby</option></select><div class="resource-profile-meta"><span id="resource-project" class="outline-badge">—</span><span id="resource-class" class="outline-badge">—</span></div><p id="resource-description" class="resource-description">Example budgets, not verified server capacity.</p><div class="resource-metrics"><div><small>REQUESTED CPU</small><strong id="resource-cpu">—</strong></div><div><small>MEMORY BUDGET</small><strong id="resource-memory">—</strong></div><div><small>STORAGE BUDGET</small><strong id="resource-disk">—</strong></div></div></div></section>
+          <section class="policy-panel"><div class="policy-topline"><span>02 / ADMISSION POLICY</span><span>READ ONLY</span></div><h2>Protect the<br>game first<span>.</span></h2><div class="policy-indicator"><span class="status-dot neutral"></span><span id="resource-state">Waiting for telemetry</span></div><p>CPU utilization, Linux resource pressure, memory and disk headroom are evaluated before suggesting placement. AI learning is deferred when conditions are unsafe.</p><div class="policy-detail"><span>REAL-TIME WORKLOADS</span><strong>Game performance takes precedence</strong></div><div class="policy-detail"><span>LEARNING WORKLOADS</span><strong>Yield to player demand</strong></div><div class="policy-detail"><span>ENFORCEMENT STATUS</span><strong>Not deployed — placement preview only</strong></div></section></div>
+          <section class="panel resource-node-panel"><div class="panel-heading"><div><span class="section-index">03 / CAPACITY</span><h2>Node eligibility</h2></div><span id="resource-node-count" class="outline-badge">NO REPORTS</span></div><div id="resource-candidates" class="node-table"></div></section><p class="resource-disclaimer">ENGINEERING PROTOTYPE · Actual capacity requires enforced reservations, workload-specific benchmarks, durable scheduling and latency SLO measurements.</p>
+        </section>
+
+        <section class="pane hidden" data-pane="servers"><div class="page-title"><span class="section-index">NETWORK / 03</span><h1>Game services<span class="title-period">.</span></h1><p>Reachability checks configured on connected agents. These do not prove TPS or player capacity.</p></div><section class="panel"><div class="panel-heading"><div><span class="section-index">PROBES</span><h2>Services inventory</h2></div><span id="server-table-count" class="outline-badge">NO PROBES</span></div><div id="servers-table" class="node-table"></div></section></section>
+
+        <section class="pane hidden" data-pane="legacy"><div class="page-title"><span class="section-index">MIGRATION / 04</span><h1>Old Servers<span class="title-period">.</span></h1><p>Observe the legacy Wings environment without managing its containers or accessing existing game files.</p></div><div class="legacy-intro"><div class="legacy-intro-icon" aria-hidden="true">↙</div><div><span class="section-index">LEGACY BRIDGE — OBSERVATION ONLY</span><h2>Move safely. Nothing disappears.</h2><p>Metallic's own control plane will be built separately. Old Servers stay untouched until backups, player data verification and a staged migration are approved.</p></div></div><section class="panel"><div class="panel-heading"><div><span class="section-index">OLD SERVERS / HOSTS</span><h2>Wings presence</h2></div><span class="outline-badge">PROCESS OBSERVATION</span></div><div id="legacy-nodes" class="node-table"></div></section><div class="migration-steps" aria-label="Safe migration steps"><div><b>01</b><strong>Inventory</strong><small>Identify instances and file ownership.</small></div><div><b>02</b><strong>Back up</strong><small>Snapshot data and test restoration.</small></div><div><b>03</b><strong>Stage</strong><small>Compare behavior on a new isolated node.</small></div><div><b>04</b><strong>Cut over</strong><small>Migrate only after explicit approval.</small></div></div></section>
+
+        <section class="pane hidden" data-pane="operations"><div class="page-title"><span class="section-index">OPERATIONS / 05</span><h1>System signals<span class="title-period">.</span></h1><p>Agent health and observed service-reachability issues, using real reports only.</p></div><div class="operations-grid"><section class="panel"><div class="panel-heading"><div><span class="section-index">LIVE EVENTS</span><h2>Needs attention</h2></div><span class="outline-badge">TELEMETRY</span></div><div id="operations-list" class="list-stack"></div></section><aside class="operations-notice"><span class="section-index">SAFETY STATUS</span><h2>Access is deliberately limited.</h2><p>This prototype cannot execute commands, stop Old Servers, or deploy containers. Operational actions require hardened identities, isolated agents, audit logs, backups and approvals.</p><a href="https://github.com/oncoursemail/metallic-mc/blob/main/README.md" rel="noopener noreferrer" target="_blank">Project source ↗</a></aside></div></section>
+      </main>
+      <footer class="footer"><span>© METALLIC <span class="footer-divider">/</span> PRIVATE INFRASTRUCTURE</span><span>CONTROL SURFACE <span class="footer-divider">/</span> M0</span></footer>
     </div>
-    <div class="content-grid"><section class="panel"><div class="panel-heading"><div><span class="section-index">01 / COMPUTE</span><h2>Physical nodes</h2></div><button class="text-link" data-target="nodes">View all <span>↗</span></button></div><div id="overview-nodes" class="list-stack"></div></section><section class="panel"><div class="panel-heading"><div><span class="section-index">02 / STATUS</span><h2>Service health</h2></div><button class="text-link" data-target="servers">View services <span>↗</span></button></div><div id="overview-services" class="list-stack"></div></section></div>
-    <section class="panel architecture"><div class="panel-heading"><div><span class="section-index">03 / TOPOLOGY</span><h2>Designed to scale</h2></div><span class="outline-badge">REFERENCE ARCHITECTURE</span></div><div class="architecture-flow"><div class="flow-box"><span class="flow-icon">↘</span><strong>Players</strong><small>Java + Bedrock</small></div><div class="flow-arrow">→</div><div class="flow-box"><span class="flow-icon">◈</span><strong>Protected edge</strong><small>DDoS mitigation</small></div><div class="flow-arrow">→</div><div class="flow-box"><span class="flow-icon">⇄</span><strong>Gateway</strong><small>Velocity + Geyser</small></div><div class="flow-arrow">→</div><div class="flow-box highlight"><span class="flow-icon">▦</span><strong>Game fleet</strong><small>Distributed backends</small></div></div><p class="flow-note">Architecture is planned, not yet deployed or verified. This dashboard shows actual connected node telemetry only.</p></section>
-   </section>
-   <section class="pane hidden" data-pane="nodes"><div class="page-title"><span class="section-index">INFRASTRUCTURE / 01</span><h1>Compute nodes</h1><p>Physical machines reporting hardware utilization and configured service probes.</p></div><div class="panel"><div class="panel-heading"><h2>Fleet inventory</h2><span id="node-table-count" class="outline-badge">NO DATA</span></div><div id="nodes-table" class="node-table"></div></div></section>
-   <section class="pane hidden" data-pane="resources">
-    <div class="page-title"><span class="section-index">INFRASTRUCTURE / 02</span><h1>Resource manager</h1><p>Three products, one computing fleet. Preview resource requirements against live telemetry before requesting a deployment.</p></div>
-    <div class="resource-grid">
-     <section class="panel resource-selector-panel">
-      <div class="panel-heading"><div><span class="section-index">01 / WORKLOAD</span><h2>Placement preview</h2></div><span class="outline-badge">NO OPERATIONS</span></div>
-      <div class="resource-selector-inner"><label class="resource-label" for="resource-profile">Choose an example workload</label><select id="resource-profile" class="resource-select" aria-label="Workload template"><option value="mc-lobby">Minecraft lobby</option></select><div class="resource-profile-meta"><span id="resource-project" class="outline-badge">—</span><span id="resource-class" class="outline-badge">—</span></div><p id="resource-description" class="resource-description">Each scenario is a proposed resource budget, not a measured capacity claim.</p>
-       <div class="resource-metrics"><div><small>CPU REQUEST</small><strong id="resource-cpu">—</strong></div><div><small>MEMORY</small><strong id="resource-memory">—</strong></div><div><small>STORAGE</small><strong id="resource-disk">—</strong></div></div></div>
-     </section>
-     <section class="panel resource-policy-panel"><div class="panel-heading"><div><span class="section-index">02 / POLICY</span><h2>Safe capacity first</h2></div></div><div class="policy-content"><div class="policy-indicator"><span class="status-dot neutral"></span><span id="resource-state">Waiting for telemetry</span></div><p>The planner subtracts host reserves and checks CPU load, pressure and available memory/disk. It rejects stale node data.</p><div class="policy-detail"><span>STAR AI LEARNING</span><strong>Deferred when resource pressure is high</strong></div><div class="policy-detail"><span>PLAYER WORKLOADS</span><strong>Latency-sensitive priority</strong></div><div class="policy-detail"><span>ACTUAL ENFORCEMENT</span><strong>Not installed; deployment disabled</strong></div></div></section>
-    </div>
-    <section class="panel resource-node-panel"><div class="panel-heading"><div><span class="section-index">03 / NODES</span><h2>Admission checks</h2></div><span id="resource-node-count" class="outline-badge">NO REPORTS</span></div><div id="resource-candidates" class="node-table"></div></section>
-    <p class="resource-disclaimer">PREVIEW MODE · Live telemetry is a snapshot, not a guarantee of available CPU cycles or disk I/O. A production scheduler additionally requires enforced cgroups, durable allocations, actual game workload profiling and authorization before starting containers.</p>
-   </section>
-   <section class="pane hidden" data-pane="servers"><div class="page-title"><span class="section-index">INFRASTRUCTURE / 02</span><h1>Game services</h1><p>TCP reachability checks for Minecraft proxies and server ports. Not a TPS or player-count measurement.</p></div><div class="panel"><div class="panel-heading"><h2>Service inventory</h2><span id="server-table-count" class="outline-badge">NO DATA</span></div><div id="servers-table" class="node-table"></div></div></section>
-   <section class="pane hidden" data-pane="operations"><div class="page-title"><span class="section-index">INFRASTRUCTURE / 04</span><h1>Operations</h1><p>Live agent connectivity checks and infrastructure readiness.</p></div><div class="content-grid"><div class="panel"><div class="panel-heading"><h2>Attention required</h2><span class="outline-badge">LIVE SIGNALS</span></div><div id="operations-list" class="list-stack"></div></div><div class="panel"><div class="panel-heading"><h2>Foundation status</h2></div><div class="operation-item"><strong>Control API</strong><small>Operational when this page can refresh</small></div><div class="operation-item"><strong>Node heartbeat</strong><small>Enabled · authenticated agent POST</small></div><div class="operation-item"><strong>Persistent storage / orchestration</strong><small>Not implemented in foundation milestone</small></div><div class="operation-item"><strong>Backups / automated provisioning</strong><small>Not implemented in foundation milestone</small></div></div></div></section>
-  </main><footer class="footer"><span>METALLIC CONTROL <span class="footer-divider">—</span> INTERNAL INFRASTRUCTURE</span><span>FOUNDATION / 001</span></footer>
- </div>
- </div>
-</body></html>
+  </div>
+</body>
+</html>

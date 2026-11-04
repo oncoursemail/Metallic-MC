@@ -120,3 +120,52 @@ func TestListingModeration(t *testing.T) {
 		t.Fatalf("unexpected result %#v", d)
 	}
 }
+
+func sanction(action Action, expires time.Time) Request {
+	r := standard()
+	r.Actor.Role = PlayerModerator
+	r.Action = action
+	r.Target = Target{ID: "verified-uuid", Type: Player, State: "active", VerifiedIdentity: true}
+	r.EvidenceIDs = []string{"evidence-1"}
+	r.ExpiresAt = expires
+	return r
+}
+
+func TestMuteRequiresBoundedFutureExpiry(t *testing.T) {
+	now := standard().Now
+	for _, tc := range []struct {
+		name    string
+		expires time.Time
+		code    string
+	}{
+		{"missing", time.Time{}, "invalid_expiry"},
+		{"past", now.Add(-time.Hour), "invalid_expiry"},
+		{"now", now, "invalid_expiry"},
+		{"too long", now.Add(366 * 24 * time.Hour), "invalid_expiry"},
+		{"ok", now.Add(24 * time.Hour), "allowed"},
+	} {
+		if d := Evaluate(sanction(MutePlayer, tc.expires)); d.Code != tc.code {
+			t.Errorf("%s: got %q want %q", tc.name, d.Code, tc.code)
+		}
+	}
+}
+
+func TestBanExpiryOptionalButNeverInThePast(t *testing.T) {
+	now := standard().Now
+	if d := Evaluate(sanction(BanPlayer, time.Time{})); !d.Allowed {
+		t.Errorf("permanent ban should be allowed, got %q", d.Code)
+	}
+	if d := Evaluate(sanction(BanPlayer, now.Add(-time.Minute))); d.Code != "invalid_expiry" {
+		t.Errorf("past expiry: got %q", d.Code)
+	}
+	if d := Evaluate(sanction(BanPlayer, now.Add(time.Hour))); !d.Allowed {
+		t.Errorf("timed ban: got %q", d.Code)
+	}
+}
+
+func TestExpiryRejectedOnNonSanctionActions(t *testing.T) {
+	r := sanction(WarnPlayer, standard().Now.Add(time.Hour))
+	if d := Evaluate(r); d.Code != "invalid_expiry" {
+		t.Errorf("warn with expiry: got %q", d.Code)
+	}
+}

@@ -76,7 +76,13 @@ type Request struct {
 	IdempotencyKey string
 	EvidenceIDs    []string
 	Now            time.Time
+	// ExpiresAt ends a player sanction. Mutes require it; bans may omit it
+	// (permanent, still appealable); no other action accepts it.
+	ExpiresAt time.Time
 }
+
+// maxSanctionTerm bounds a timed mute or ban.
+const maxSanctionTerm = 365 * 24 * time.Hour
 
 type Decision struct {
 	Allowed       bool   `json:"allowed"`
@@ -128,6 +134,12 @@ func Evaluate(r Request) Decision {
 	for _, e := range r.EvidenceIDs {
 		if strings.TrimSpace(e) == "" {
 			return deny("invalid_evidence", "Evidence references must not be blank")
+		}
+	}
+	if !r.ExpiresAt.IsZero() || r.Action == MutePlayer {
+		timed := r.Action == MutePlayer || r.Action == BanPlayer
+		if !timed || !r.ExpiresAt.After(r.Now) || r.ExpiresAt.Sub(r.Now) > maxSanctionTerm {
+			return deny("invalid_expiry", "Mutes need a future expiry within one year; bans may be permanent or timed; other actions take none")
 		}
 	}
 	if !targetCompatible(r.Action, r.Target.Type) {

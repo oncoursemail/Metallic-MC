@@ -1,5 +1,8 @@
 # Metallic-MC — Minecraft Network
 
+> **Where the code lives:** since 2026-11-04 the main copy of this repository, with its issues and pull requests, is on the owner's self-hosted Metallic Forge. The GitHub copy is a read-only mirror, updated automatically from the forge; please do not open issues or pull requests here.
+
+
 **Start here:** [Metallic-MC master product and engineering draft](METALLIC_MC_MASTER_DRAFT.md) — the complete launcher, local/hosted server, custom network, games, security, recovery, and delivery vision, with implemented status separated from proposed work.
 
 **Project naming:** [Metallic-RC / Metallic-MC / Metallic-RB / Metallic-PX](docs/PROJECT_IDENTITIES.md). Family domain: **Metallic.club** (application routing is not configured by this repository change).

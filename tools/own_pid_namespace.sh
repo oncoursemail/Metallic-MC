@@ -14,5 +14,5 @@ set -eu
 if unshare --user --map-current-user --pid --fork --mount-proc true 2>/dev/null; then
   exec unshare --user --map-current-user --pid --fork --mount-proc "$@"
 fi
-exec sudo -n -E unshare --pid --fork --mount-proc \
+exec sudo -n unshare --pid --fork --mount-proc \
   setpriv --reuid="$(id -u)" --regid="$(id -g)" --init-groups env "PATH=$PATH" "$@"

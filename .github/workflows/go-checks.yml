@@ -20,7 +20,7 @@ jobs:
       - name: Go unit tests
         run: go test -race -count=1 ./...
       - name: Private pilot unit and lifecycle tests
-        run: python3 -m unittest discover -s tools -p pilot_test.py -v
+        run: sh tools/own_pid_namespace.sh python3 -m unittest discover -s tools -p pilot_test.py -v
       - name: Private service bundle tests
         run: python3 -m unittest discover -s infra/systemd -p '*_test.py' -v
       - name: Build controller and agent
